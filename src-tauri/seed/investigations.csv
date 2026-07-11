@@ -1,0 +1,52 @@
+test_code,test_name,category,unit,cost,result_type,critical_low,critical_high,age_group,gender,min_value,max_value
+HGB,Hemoglobin,Hematology,g/dL,5.00,numeric,7.0,20.0,neonate,any,13.5,24.0
+HGB,Hemoglobin,Hematology,g/dL,5.00,numeric,7.0,20.0,infant,any,9.5,14.0
+HGB,Hemoglobin,Hematology,g/dL,5.00,numeric,7.0,20.0,child,any,11.0,14.5
+HGB,Hemoglobin,Hematology,g/dL,5.00,numeric,7.0,20.0,adolescent,any,12.0,16.0
+HGB,Hemoglobin,Hematology,g/dL,5.00,numeric,7.0,20.0,adult,male,13.5,17.5
+HGB,Hemoglobin,Hematology,g/dL,5.00,numeric,7.0,20.0,adult,female,12.0,15.5
+HGB,Hemoglobin,Hematology,g/dL,5.00,numeric,7.0,20.0,elderly,male,12.6,17.4
+HGB,Hemoglobin,Hematology,g/dL,5.00,numeric,7.0,20.0,elderly,female,11.7,15.3
+HCT,Hematocrit,Hematology,%,5.00,numeric,20.0,60.0,adult,male,38.8,50.0
+HCT,Hematocrit,Hematology,%,5.00,numeric,20.0,60.0,adult,female,34.9,44.5
+WBC,White Blood Cell Count,Hematology,x10^3/uL,5.00,numeric,2.0,30.0,adult,any,4.5,11.0
+WBC,White Blood Cell Count,Hematology,x10^3/uL,5.00,numeric,2.0,30.0,child,any,5.0,15.5
+PLT,Platelet Count,Hematology,x10^3/uL,5.00,numeric,20.0,1000.0,adult,any,150.0,450.0
+RBC,Red Blood Cell Count,Hematology,x10^6/uL,5.00,numeric,1.5,7.0,adult,male,4.7,6.1
+RBC,Red Blood Cell Count,Hematology,x10^6/uL,5.00,numeric,1.5,7.0,adult,female,4.2,5.4
+MCV,Mean Corpuscular Volume,Hematology,fL,4.00,numeric,60.0,120.0,adult,any,80.0,100.0
+MCH,Mean Corpuscular Hemoglobin,Hematology,pg,4.00,numeric,15.0,40.0,adult,any,27.0,33.0
+MCHC,Mean Corpuscular Hemoglobin Concentration,Hematology,g/dL,4.00,numeric,25.0,40.0,adult,any,32.0,36.0
+ESR,Erythrocyte Sedimentation Rate,Hematology,mm/hr,5.00,numeric,,100.0,adult,male,0.0,15.0
+ESR,Erythrocyte Sedimentation Rate,Hematology,mm/hr,5.00,numeric,,100.0,adult,female,0.0,20.0
+GLU,Fasting Blood Glucose,Biochemistry,mg/dL,4.00,numeric,40.0,500.0,adult,any,70.0,100.0
+HBA1C,Hemoglobin A1c,Endocrinology,%,15.00,numeric,,14.0,adult,any,4.0,5.6
+CREA,Creatinine,Biochemistry,mg/dL,5.00,numeric,,10.0,adult,male,0.7,1.3
+CREA,Creatinine,Biochemistry,mg/dL,5.00,numeric,,10.0,adult,female,0.6,1.1
+UREA,Blood Urea Nitrogen,Biochemistry,mg/dL,5.00,numeric,,100.0,adult,any,7.0,20.0
+URIC,Uric Acid,Biochemistry,mg/dL,5.00,numeric,,15.0,adult,male,3.4,7.0
+URIC,Uric Acid,Biochemistry,mg/dL,5.00,numeric,,15.0,adult,female,2.4,6.0
+ALT,Alanine Aminotransferase (ALT/SGPT),Biochemistry,U/L,6.00,numeric,,500.0,adult,male,10.0,40.0
+ALT,Alanine Aminotransferase (ALT/SGPT),Biochemistry,U/L,6.00,numeric,,500.0,adult,female,7.0,35.0
+AST,Aspartate Aminotransferase (AST/SGOT),Biochemistry,U/L,6.00,numeric,,500.0,adult,any,10.0,40.0
+ALP,Alkaline Phosphatase,Biochemistry,U/L,6.00,numeric,,1000.0,adult,any,44.0,147.0
+TBIL,Total Bilirubin,Biochemistry,mg/dL,6.00,numeric,,20.0,adult,any,0.3,1.2
+DBIL,Direct Bilirubin,Biochemistry,mg/dL,6.00,numeric,,10.0,adult,any,0.0,0.3
+TP,Total Protein,Biochemistry,g/dL,5.00,numeric,,12.0,adult,any,6.0,8.3
+ALB,Albumin,Biochemistry,g/dL,5.00,numeric,,6.0,adult,any,3.5,5.0
+CHOL,Total Cholesterol,Biochemistry,mg/dL,6.00,numeric,,500.0,adult,any,0.0,200.0
+HDL,HDL Cholesterol,Biochemistry,mg/dL,6.00,numeric,,150.0,adult,male,40.0,60.0
+HDL,HDL Cholesterol,Biochemistry,mg/dL,6.00,numeric,,150.0,adult,female,50.0,60.0
+LDL,LDL Cholesterol,Biochemistry,mg/dL,6.00,numeric,,300.0,adult,any,0.0,100.0
+TG,Triglycerides,Biochemistry,mg/dL,6.00,numeric,,1000.0,adult,any,0.0,150.0
+NA,Sodium,Biochemistry,mEq/L,4.00,numeric,120.0,160.0,adult,any,135.0,145.0
+K,Potassium,Biochemistry,mEq/L,4.00,numeric,2.5,6.5,adult,any,3.5,5.1
+CL,Chloride,Biochemistry,mEq/L,4.00,numeric,80.0,120.0,adult,any,98.0,107.0
+CA,Calcium,Biochemistry,mg/dL,5.00,numeric,6.0,13.0,adult,any,8.6,10.3
+TSH,Thyroid Stimulating Hormone,Endocrinology,uIU/mL,12.00,numeric,0.05,50.0,adult,any,0.4,4.0
+FT4,Free T4,Endocrinology,ng/dL,12.00,numeric,,7.0,adult,any,0.8,1.8
+FT3,Free T3,Endocrinology,pg/mL,12.00,numeric,,15.0,adult,any,2.3,4.2
+CRP,C-Reactive Protein,Immunology,mg/L,8.00,numeric,,200.0,adult,any,0.0,10.0
+PT,Prothrombin Time,Pathology,sec,7.00,numeric,,40.0,adult,any,11.0,13.5
+INR,International Normalized Ratio,Pathology,ratio,7.00,numeric,,8.0,adult,any,0.8,1.1
+APTT,Activated Partial Thromboplastin Time,Pathology,sec,7.00,numeric,,80.0,adult,any,25.0,35.0

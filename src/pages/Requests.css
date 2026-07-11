@@ -1,0 +1,31 @@
+.selected-patient {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--sp-3);
+  background: var(--accent-dim);
+  border: 1px solid var(--accent);
+  border-radius: var(--r-md);
+  font-size: 13px;
+}
+
+.patient-results {
+  margin-top: var(--sp-1);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-md);
+  max-height: 160px;
+  overflow-y: auto;
+  min-height: 0;
+  background: var(--bg-elevated);
+}
+
+.patient-results__item {
+  padding: var(--sp-2) var(--sp-3);
+  font-size: 13px;
+  cursor: pointer;
+  transition: background var(--t-fast);
+}
+
+.patient-results__item:hover {
+  background: var(--bg-hover);
+}

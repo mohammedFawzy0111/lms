@@ -1,0 +1,129 @@
+.users-loaing {
+  padding: 3rem;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.users-error {
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--danger-dim);
+  border: 1px solid var(--danger);
+  border-radius: var(--r-md);
+  color: var(--danger);
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+/* Table */
+.users-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.users-table th {
+  padding: 10px 16px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+  transition: color var(--t-normal), border-color var(--t-normal);
+}
+
+.users-table td {
+  padding: 12px 16px;
+  font-size: 13px;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border);
+  transition: color var(--t-normal), border-color var(--t-normal);
+}
+
+.users-table tr:last-child td {
+  border-bottom: none;
+}
+
+.users-table tbody tr:hover td {
+  background: var(--bg-hover);
+}
+
+/* User cell */
+.user-cell {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+
+.user-avatar {
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  border-radius: 50%;
+  background: var(--accent-dim);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  transition: background var(--t-normal);
+}
+
+/* Badges */
+.role-badge {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.status-badge {
+  display: inline-flex;
+  padding: 2px 8px;
+  border-radius: var(--r-full);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.status-badge--active {
+  background: var(--success-dim);
+  color: var(--success);
+}
+
+.status-badge--inactive {
+  background: var(--danger-dim);
+  color: var(--danger);
+}
+
+/* Row actions */
+.row-actions {
+  display: flex;
+  gap: var(--sp-2);
+}
+
+.action-btn {
+  height: 28px;
+  padding: 0 var(--sp-3);
+  border-radius: var(--r-md);
+  border: 1px solid var(--border-strong);
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all var(--t-fast);
+}
+
+.action-btn:hover {
+  background: var(--bg-overlay);
+  color: var(--text-primary);
+}
+
+.action-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* Modal */

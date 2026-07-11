@@ -1,0 +1,183 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+/* ── Tokens ── */
+:root {
+  --font-sans: 'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+
+  --r-sm:   4px;
+  --r-md:   8px;
+  --r-lg:   12px;
+  --r-xl:   16px;
+  --r-full: 9999px;
+
+  --t-fast:   120ms ease;
+  --t-normal: 200ms ease;
+  --t-slow:   320ms ease;
+
+  --sp-1: 0.25rem;
+  --sp-2: 0.5rem;
+  --sp-3: 0.75rem;
+  --sp-4: 1rem;
+  --sp-5: 1.25rem;
+  --sp-6: 1.5rem;
+  --sp-8: 2rem;
+}
+
+/* ── Dark theme ── */
+[data-theme="dark"] {
+  --bg-base:     #0d1117;
+  --bg-surface:  #161b22;
+  --bg-elevated: #1c2128;
+  --bg-overlay:  #222831;
+  --bg-hover:    rgba(255,255,255,0.05);
+  --bg-active:   rgba(56,189,248,0.10);
+
+  --border:        rgba(255,255,255,0.08);
+  --border-strong: rgba(255,255,255,0.14);
+
+  --text-primary:   #e6edf3;
+  --text-secondary: #848d97;
+  --text-muted:     #484f58;
+  --text-inverse:   #0d1117;
+
+  --accent:       #38bdf8;
+  --accent-dim:   rgba(56,189,248,0.12);
+  --accent-hover: #7dd3fc;
+
+  --success:      #3fb950;
+  --success-dim:  rgba(63,185,80,0.12);
+  --warning:      #d29922;
+  --warning-dim:  rgba(210,153,34,0.12);
+  --danger:       #f85149;
+  --danger-dim:   rgba(248,81,73,0.12);
+  --info:         #58a6ff;
+  --info-dim:     rgba(88,166,255,0.12);
+
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.4);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.5);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.7);
+
+  --titlebar-bg: #010409;
+}
+
+/* ── Light theme ── */
+[data-theme="light"] {
+  --bg-base:     #f6f8fa;
+  --bg-surface:  #ffffff;
+  --bg-elevated: #ffffff;
+  --bg-overlay:  #eaeef2;
+  --bg-hover:    rgba(0,0,0,0.04);
+  --bg-active:   rgba(9,105,218,0.08);
+
+  --border:        rgba(0,0,0,0.08);
+  --border-strong: rgba(0,0,0,0.15);
+
+  --text-primary:   #1f2328;
+  --text-secondary: #636c76;
+  --text-muted:     #9198a1;
+  --text-inverse:   #ffffff;
+
+  --accent:       #0969da;
+  --accent-dim:   rgba(9,105,218,0.10);
+  --accent-hover: #0550ae;
+
+  --success:      #1a7f37;
+  --success-dim:  rgba(26,127,55,0.10);
+  --warning:      #9a6700;
+  --warning-dim:  rgba(154,103,0,0.10);
+  --danger:       #d1242f;
+  --danger-dim:   rgba(209,36,47,0.10);
+  --info:         #0969da;
+  --info-dim:     rgba(9,105,218,0.10);
+
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.10);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.14);
+
+  --titlebar-bg: #f0f0f0;
+}
+
+/* ── Reset ── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  height:                  100%;
+  font-family:             var(--font-sans);
+  font-size:               14px;
+  line-height:             1.6;
+  color:                   var(--text-primary);
+  background:              var(--bg-base);
+  -webkit-font-smoothing:  antialiased;
+  overflow:                hidden;
+  /* smooth theme transitions */
+  transition: background var(--t-normal), color var(--t-normal);
+}
+
+#root {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar       { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background:    var(--border-strong);
+  border-radius: var(--r-full);
+  transition:    background var(--t-fast);
+}
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* ── Focus ── */
+:focus-visible {
+  outline:        2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius:  var(--r-sm);
+}
+
+/* ── Selection ── */
+::selection {
+  background: var(--accent-dim);
+  color:      var(--text-primary);
+}
+
+/* ── Transitions on theme elements ── */
+.surface-transition {
+  transition:
+    background var(--t-normal),
+    border-color var(--t-normal),
+    color var(--t-normal);
+}
+
+/* ── Utils ── */
+.truncate   { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.font-mono  { font-family: var(--font-mono); }
+.sr-only    { position: absolute; width: 1px; height: 1px; padding: 0;
+              margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
+
+/* ── Animations ── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-10px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.anim-fade-in     { animation: fadeIn     220ms ease forwards; }
+.anim-slide-left  { animation: slideInLeft 220ms ease forwards; }
+.anim-spin        { animation: spin 1s linear infinite; }
