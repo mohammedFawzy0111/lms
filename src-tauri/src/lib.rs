@@ -5,6 +5,7 @@ mod investigations;
 mod patients;
 mod profiles;
 mod requests;
+mod results;
 mod seed;
 
 use rusqlite::Connection;
@@ -98,6 +99,11 @@ pub fn run() {
             commands::cmd_update_request_status,
             commands::cmd_update_item_status,
             commands::cmd_delete_request,
+            commands::cmd_get_request_results,
+            commands::cmd_save_result,
+            commands::cmd_finalize_results,
+            commands::cmd_log_report,
+            commands::cmd_get_print_data,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

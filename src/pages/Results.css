@@ -1,0 +1,36 @@
+.results-patient-bar {
+  display: flex;
+  gap: var(--sp-6);
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  font-size: 13px;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  transition: background var(--t-normal), border-color var(--t-normal);
+}
+
+.results-table-wrap {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg); 
+  transition: background var(--t-normal), border-color var(--t-normal);
+}
+
+.result-input-cell {
+  min-width: 120px;
+}
+
+.result-input {
+  height: 32px;
+  font-size: 12px;
+  padding: 0 var(--sp-2);
+}
+
+.row--finalized td {
+  opacity: 0.7;
+}

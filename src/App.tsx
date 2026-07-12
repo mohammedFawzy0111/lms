@@ -11,6 +11,8 @@ import Users from "./pages/Users";
 import Patients from "./pages/Patients";
 import Investigations from "./pages/Investigations";
 import Requests from "./pages/Requests"
+import Results from "./pages/Results";
+import PrintReport from "./pages/PrintReports";
 
 export default function App() {
   const session = useAuthStore((s) => s.session);
@@ -20,7 +22,12 @@ export default function App() {
     loadSettings();
   }, []);
 
+
   return (
+    <Routes>
+      <Route path="/print/:requestId" element={<PrintReport />} />
+
+      <Route path="*" element={
     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
       <TitleBar />
       <div style={{ flex: 1, overflow: "hidden" }}>
@@ -34,6 +41,7 @@ export default function App() {
             <Route element={<Shell />}>
               <Route path="/" element={<Dashboard />} />
               <Route path="/requests" element={<Requests />} />
+              <Route path="/results/:requestId" element={<Results />} />
               <Route path="/patients" element={<Patients />} />
               <Route path="/investigations" element={<Investigations />} />
               <Route path="/settings" element={<Settings />} />
@@ -43,6 +51,7 @@ export default function App() {
           )}
         </Routes>
       </div>
-    </div>
+    </div> } />
+    </Routes>
   );
 }

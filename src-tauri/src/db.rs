@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
 use rusqlite::Connection;
-use std::{path::Path, result};
+use std::path::Path;
 
 pub fn open_and_migrate(path: &Path) -> Result<Connection> {
     let conn =
@@ -54,6 +54,15 @@ pub fn open_and_migrate(path: &Path) -> Result<Connection> {
         conn.execute("INSERT INTO schema_migrations (version) VALUES (5)", [])?;
     }
 
+    if version < 6 {
+        migrate_v6(&conn)?;
+        conn.execute("INSERT INTO schema_migrations (version) VALUES (6)", [])?;
+    }
+
+    if version < 7 {
+        migrate_v7(&conn)?;
+        conn.execute("INSERT INTO schema_migrations (version) VALUES (7)", [])?;
+    }
     Ok(conn)
 }
 
@@ -263,6 +272,56 @@ fn migrate_v5(conn: &Connection) -> Result<()> {
     Ok(())
 }
 
+fn migrate_v6(conn: &Connection) -> Result<()> {
+    conn.execute_batch("
+        CREATE TABLE IF NOT EXISTS results (
+            id               TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
+            request_item_id  TEXT NOT NULL UNIQUE REFERENCES lab_request_items(id) ON DELETE CASCADE,
+            numeric_value    REAL,
+            text_value       TEXT,
+            flag             TEXT CHECK (flag IN ('normal','low','high','critical_low','critical_high')),
+            is_draft         INTEGER NOT NULL DEFAULT 1,
+            notes            TEXT,
+            entered_by       TEXT REFERENCES users(id) ON DELETE SET NULL,
+            verified_by      TEXT REFERENCES users(id) ON DELETE SET NULL,
+            entered_at       TEXT NOT NULL DEFAULT (datetime('now')),
+            updated_at       TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_results_item ON results (request_item_id);
+
+        CREATE TABLE IF NOT EXISTS result_audit (
+            id              INTEGER PRIMARY KEY AUTOINCREMENT,
+            result_id       TEXT NOT NULL REFERENCES results(id) ON DELETE CASCADE,
+            changed_by      TEXT REFERENCES users(id) ON DELETE SET NULL,
+            old_value       TEXT,
+            new_value       TEXT,
+            old_flag        TEXT,
+            new_flag        TEXT,
+            changed_at      TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+
+        CREATE TABLE IF NOT EXISTS report_log (
+            id          TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
+            request_id  TEXT NOT NULL REFERENCES lab_requests(id) ON DELETE CASCADE,
+            generated_by TEXT REFERENCES users(id) ON DELETE SET NULL,
+            generated_at TEXT NOT NULL DEFAULT (datetime('now')),
+            file_path   TEXT
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_report_log_request ON report_log (request_id);
+    ")?;
+    Ok(())
+}
+
+fn migrate_v7(conn: &Connection) -> Result<()> {
+    conn.execute_batch("
+    INSERT OR IGNORE INTO lab_settings (key, value) VALUES ('print_mode', 'full'), ('print_margin_top', '20'), ('print_margin_bottom', '20'), ('print_margin_left', '15'), ('print_margin_right', '15');
+        ")?;
+    Ok(())
+}
+
+#[allow(dead_code)]
 pub fn integrity_check(conn: &Connection) -> bool {
     conn.query_row("PRAGMA integrity_check", [], |row| row.get::<_, String>(0))
         .map(|r| r == "ok")

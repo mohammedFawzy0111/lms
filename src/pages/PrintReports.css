@@ -1,0 +1,196 @@
+
+/* ── Shell ── */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  font-size:   13px;
+  background:  #f0f0f0;
+  color:       #111;
+}
+
+.print-loading {
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  height:          100vh;
+  font-size:       16px;
+  color:           #555;
+}
+
+.print-shell {
+  min-height: 100vh;
+  background: #f0f0f0;
+}
+
+/* ── Toolbar ── */
+.print-toolbar {
+  position:        sticky;
+  top:             0;
+  z-index:         100;
+  background:      #ffffff;
+  border-bottom:   1px solid #ddd;
+  padding:         10px 20px;
+  display:         flex;
+  align-items:     center;
+  justify-content: space-between;
+  box-shadow:      0 2px 6px rgba(0,0,0,0.08);
+}
+
+.print-btn {
+  padding:       6px 16px;
+  border-radius: 6px;
+  border:        none;
+  background:    #0066cc;
+  color:         white;
+  font-size:     13px;
+  font-weight:   600;
+  cursor:        pointer;
+}
+.print-btn:hover { background: #0055aa; }
+.print-btn--secondary { background: #666; }
+.print-btn--secondary:hover { background: #444; }
+
+/* ── Page ── */
+.print-page {
+  width:      210mm;
+  min-height: 297mm;
+  margin:     20px auto;
+  background: white;
+  padding:    20mm 15mm;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+.print-page--template {
+  padding-top:    40mm;
+  padding-bottom: 40mm;
+}
+
+/* ── Header ── */
+.print-header {
+  display:         flex;
+  justify-content: space-between;
+  align-items:     flex-start;
+  margin-bottom:   6mm;
+}
+.print-lab-name {
+  font-size:   18px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.print-header__lab p { font-size: 12px; color: #444; margin-top: 2px; }
+.print-header__title { text-align: right; }
+.print-header__title h2 { font-size: 15px; font-weight: 700; letter-spacing: 1px; }
+.print-header__title p  { font-size: 12px; margin-top: 4px; color: #444; }
+
+/* ── Divider ── */
+.print-divider {
+  border:     none;
+  border-top: 1.5px solid #111;
+  margin:     4mm 0;
+}
+
+/* ── Patient info ── */
+.print-patient { margin-bottom: 4mm; }
+.print-patient__row {
+  display:               grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap:                   4mm;
+  margin-bottom:         3mm;
+}
+.print-patient__field { display: flex; flex-direction: column; }
+.print-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; color: #666; }
+.print-value { font-size: 13px; font-weight: 500; margin-top: 1px; }
+
+/* ── Results table ── */
+.print-table {
+  width:           100%;
+  border-collapse: collapse;
+  margin-bottom:   6mm;
+  font-size:       12px;
+}
+.print-table th {
+  background:     #f5f5f5;
+  border:         1px solid #ccc;
+  padding:        4px 8px;
+  text-align:     left;
+  font-size:      10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight:    700;
+}
+.print-table td {
+  border:  1px solid #ddd;
+  padding: 5px 8px;
+}
+.print-table tr:nth-child(even) td { background: #fafafa; }
+
+.print-test-code {
+  display:      inline-block;
+  font-family:  monospace;
+  font-size:    10px;
+  color:        #666;
+  margin-right: 6px;
+}
+.print-test-name { font-weight: 500; }
+.print-value-cell { font-size: 13px; }
+
+.print-row--abnormal td { background: #fff8f8 !important; }
+
+.print-flag            { font-size: 10px; font-weight: 700; }
+.print-flag--high      { color: #d97706; }
+.print-flag--low       { color: #2563eb; }
+.print-flag--critical_high,
+.print-flag--critical_low { color: #dc2626; }
+
+/* ── Signatures ── */
+.print-signatures {
+  display:               grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap:                   15mm;
+  margin-bottom:         8mm;
+  margin-top:            10mm;
+}
+.print-sig { text-align: center; }
+.print-sig__line {
+  border-bottom: 1px solid #333;
+  margin-bottom: 4px;
+  height:        10mm;
+}
+.print-sig span { font-size: 10px; color: #555; }
+
+/* ── Footer ── */
+.print-footer {
+  text-align:  center;
+  font-size:   10px;
+  color:       #666;
+  border-top:  1px solid #ddd;
+  padding-top: 4mm;
+}
+
+/* ── Print media ── */
+@media print {
+  body { background: white; }
+
+  .no-print { display: none !important; }
+
+  .print-shell { background: white; }
+
+  .print-page {
+    width:      100%;
+    margin:     0;
+    padding:    10mm 15mm;
+    box-shadow: none;
+    min-height: unset;
+  }
+
+  .print-page--template {
+    padding-top:    40mm;
+    padding-bottom: 40mm;
+  }
+
+  @page {
+    size:   A4;
+    margin: 0;
+  }
+}

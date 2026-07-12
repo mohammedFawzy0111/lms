@@ -4,6 +4,8 @@ import { useAuthStore } from "../stores/authStore";
 import "./Requests.css";
 import "./Dashboard.css";
 import "./Patients.css";
+import { useNavigate } from "react-router-dom";
+import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 
 interface LabRequest {
   id: string;
@@ -55,13 +57,6 @@ interface Profile {
   test_count: number;
 }
 
-interface ProfileWithTests {
-  id: string;
-  name: string;
-  description: string | null;
-  is_active: boolean;
-  investigation_ids: string[];
-}
 
 interface ApiResult<T> { ok: boolean; data: T | null; error: string | null; }
 
@@ -85,6 +80,22 @@ export default function Requests() {
   const [showNew, setShowNew] = useState(false);
   const [detailId, setDetailId] = useState<string | null>(null);
 
+  const navigate = useNavigate();
+
+  async function openPrint(requestId: string) {
+    const label = `print_${requestId.slice(0, 8)}`;
+    const win = new WebviewWindow(label, {
+      url: `/#/print/${requestId}`,
+      title: "Print Report",
+      width: 900,
+      height: 720,
+      center: true,
+      decorations: true,
+      resizable: true,
+    });
+    win.once("tauri://error", (e) => console.error("Print window error:", e));
+  }
+  
   const load = useCallback(async (status: string, q: string) => {
     setLoading(true);
     setError(null);
@@ -172,6 +183,8 @@ export default function Requests() {
                   <td>
                     <div className="row-actions">
                       <button className="action-btn" onClick={() => setDetailId(r.id)}>View</button>
+                      <button className="action-btn" onClick={() => navigate(`/results/${r.id}`)}>Results</button>
+                      <button className="action-btn" onClick={() => openPrint(r.id)}>Print</button>
                     </div>
                   </td>
                 </tr>
@@ -214,7 +227,6 @@ function NewRequestModal({ actorId, onClose, onSaved }: {
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [testTab, setTestTab] = useState<"profiles" | "individual">("profiles");
   const [profiles, setProfiles] = useState<Profile[]>([]);
-  const [profileTestIds, setProfileTestIds] = useState<Record<string, string[]>>({});
 
   // New patient fields
   const [newPatient, setNewPatient] = useState({
@@ -225,6 +237,7 @@ function NewRequestModal({ actorId, onClose, onSaved }: {
   // Shared: test selection
   const [allTests, setAllTests] = useState<Investigation[]>([]);
   const [selectedTests, setSelectedTests] = useState<Set<string>>(new Set());
+  const [selectedProfile, setSelectedProfile] = useState<Set<string>>(new Set());
   const [priority, setPriority] = useState("normal");
   const [collectionDate, setCollectionDate] = useState("");
   const [dueDate, setDueDate] = useState("");
@@ -260,34 +273,13 @@ function NewRequestModal({ actorId, onClose, onSaved }: {
     });
   }
 
-  async function toggleProfile(profile: Profile) {
-  let ids: string[] | undefined = profileTestIds[profile.id];
-
-  if (!ids) {
-    const res = await invoke<ApiResult<ProfileWithTests>>("cmd_get_profile", { id: profile.id });
-    if (!res.ok || !res.data) return;
-    ids = res.data.investigation_ids ?? [];
-    setProfileTestIds((prev) => ({ ...prev, [profile.id]: ids! }));
-  }
-
-  if (!ids || ids.length === 0) return;
-
-  const allSelected = ids.every((id) => selectedTests.has(id));
-  setSelectedTests((prev) => {
-    const next = new Set(prev);
-    if (allSelected) {
-      ids!.forEach((id) => next.delete(id));
-    } else {
-      ids!.forEach((id) => next.add(id));
-    }
-    return next;
+  async function toggleProfile(id: string) {   
+    setSelectedProfile((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
   });
-}
 
-function isProfileSelected(profileId: string): boolean {
-  const ids = profileTestIds[profileId];
-  if (!ids || ids.length === 0) return false;
-  return ids.every((id) => selectedTests.has(id));
 }
 
   const totalCost = allTests
@@ -466,7 +458,7 @@ function isProfileSelected(profileId: string): boolean {
               ) : (
                 profiles.map((p) => (
                   <label key={p.id} className="test-picker__item">
-                    <input type="checkbox" checked={isProfileSelected(p.id)} onChange={() => toggleProfile(p)} />
+                    <input type="checkbox" checked={selectedProfile.has(p.id)} onChange={() => toggleProfile(p.id)} />
                     <span style={{ flex: 1 }}>
                       <strong>{p.name}</strong>
                       {p.description && <span style={{ color: "var(--text-muted)", marginLeft: 8 }}>{p.description}</span>}

@@ -4,6 +4,7 @@ use crate::investigations::{
 use crate::patients::{self, DuplicateWarning, NewPatient, Patient};
 use crate::profiles::{self, NewProfile, Profile, ProfileWithTests};
 use crate::requests::{self, LabRequest, NewPatientWithRequest, NewRequest, RequestDetail};
+use crate::results::{self, RequestResultsView, SaveResult};
 use crate::{auth, AppState};
 use rusqlite::params;
 use serde::{Deserialize, Serialize};
@@ -27,6 +28,12 @@ impl<T: Serialize> ApiResult<T> {
             error: Some(msg.into()),
         }
     }
+}
+
+#[derive(Debug, Serialize)]
+pub struct PrintData {
+    pub results: RequestResultsView,
+    pub settings: LabSettings,
 }
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
@@ -520,4 +527,86 @@ pub fn cmd_delete_request(state: State<AppState>, actor_id: String, id: String) 
         Ok(_) => ApiResult::ok(true),
         Err(e) => ApiResult::err(e.to_string()),
     }
+}
+
+#[tauri::command]
+pub fn cmd_get_request_results(
+    state: State<AppState>,
+    request_id: String,
+) -> ApiResult<RequestResultsView> {
+    let conn = state.db.lock().unwrap();
+    match results::get_request_results(&conn, &request_id) {
+        Ok(r) => ApiResult::ok(r),
+        Err(e) => ApiResult::err(e.to_string()),
+    }
+}
+
+#[tauri::command]
+pub fn cmd_save_result(
+    state: State<AppState>,
+    actor_id: String,
+    entery: SaveResult,
+) -> ApiResult<bool> {
+    let conn = state.db.lock().unwrap();
+    match results::save_result(&conn, entery, &actor_id) {
+        Ok(_) => ApiResult::ok(true),
+        Err(e) => ApiResult::err(e.to_string()),
+    }
+}
+
+#[tauri::command]
+pub fn cmd_finalize_results(
+    state: State<AppState>,
+    actor_id: String,
+    request_id: String,
+) -> ApiResult<bool> {
+    let conn = state.db.lock().unwrap();
+    match results::finalize_all_results(&conn, &request_id, &actor_id) {
+        Ok(_) => ApiResult::ok(true),
+        Err(e) => ApiResult::err(e.to_string()),
+    }
+}
+
+#[tauri::command]
+pub fn cmd_log_report(
+    state: State<AppState>,
+    actor_id: String,
+    request_id: String,
+) -> ApiResult<bool> {
+    let conn = state.db.lock().unwrap();
+    match conn.execute("INSERT INTO report_log (id, request_id, generated_by) VALUES (lower(hex(randomblob(16))), ?1, ?2)", params![request_id, actor_id]) {
+        Ok(_) => ApiResult::ok(true),
+        Err(e) => ApiResult::err(e.to_string()),
+    }
+}
+
+#[tauri::command]
+pub fn cmd_get_print_data(state: State<AppState>, request_id: String) -> ApiResult<PrintData> {
+    let conn = state.db.lock().unwrap();
+
+    let results = match results::get_request_results(&conn, &request_id) {
+        Ok(r) => r,
+        Err(e) => return ApiResult::err(e.to_string()),
+    };
+
+    let get = |key: &str| -> String {
+        conn.query_row("SELECT value FROM lab_settings WHERE key=?1", [key], |r| {
+            r.get::<_, Option<String>>(0)
+        })
+        .ok()
+        .flatten()
+        .unwrap_or_default()
+    };
+
+    let settings = LabSettings {
+        lab_name: get("lab_name"),
+        lab_address: get("lab_address"),
+        lab_phone: get("lab_phone"),
+        lab_email: get("lab_email"),
+        theme: get("theme"),
+        currency: get("currency"),
+        date_format: get("date_format"),
+    };
+
+    ApiResult::ok(PrintData { results, settings })
 }
