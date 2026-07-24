@@ -8,6 +8,7 @@ pub struct Result_ {
     pub request_item_id: String,
     pub test_code: String,
     pub test_name: String,
+    pub category_name: Option<String>,
     pub unit: Option<String>,
     pub numeric_value: Option<f64>,
     pub text_value: Option<String>,
@@ -194,13 +195,14 @@ pub fn get_request_results(conn: &Connection, request_id: &str) -> Result<Reques
     // Fetch all items for this request with their investigation details
     let mut stmt = conn.prepare(
         "SELECT ri.id, i.id, i.test_code, i.test_name, i.unit,
-                i.critical_low, i.critical_high
+                i.critical_low, i.critical_high, c.name
          FROM lab_request_items ri
          JOIN investigations i ON i.id = ri.investigation_id
+         LEFT JOIN investigation_categories c ON c.id = i.category_id
          WHERE ri.request_id = ?1",
     )?;
 
-    let items: Vec<(String, String, String, String, Option<String>, Option<f64>, Option<f64>)> =
+    let items: Vec<(String, String, String, String, Option<String>, Option<f64>, Option<f64>,Option<String>)> =
         stmt.query_map(params![request_id], |row| {
             Ok((
                 row.get(0)?,
@@ -210,6 +212,7 @@ pub fn get_request_results(conn: &Connection, request_id: &str) -> Result<Reques
                 row.get(4)?,
                 row.get(5)?,
                 row.get(6)?,
+                row.get(7)?,
             ))
         })?
         .filter_map(|r| r.ok())
@@ -217,7 +220,7 @@ pub fn get_request_results(conn: &Connection, request_id: &str) -> Result<Reques
 
     let mut results = Vec::new();
 
-    for (item_id, inv_id, test_code, test_name, unit, _critical_low, _critical_high) in items {
+    for (item_id, inv_id, test_code, test_name, unit, _critical_low, _critical_high, category_name) in items {
         // Find reference range for this patient
         let ref_range = find_reference_range(conn, &inv_id, age_group, gender_str);
         let (ref_min, ref_max, ref_ag, ref_gen) = match ref_range {
@@ -250,6 +253,7 @@ pub fn get_request_results(conn: &Connection, request_id: &str) -> Result<Reques
                     request_item_id: item_id,
                     test_code,
                     test_name,
+                    category_name: category_name,
                     unit,
                     numeric_value: num,
                     text_value: txt,
@@ -270,6 +274,7 @@ pub fn get_request_results(conn: &Connection, request_id: &str) -> Result<Reques
                 request_item_id: item_id,
                 test_code,
                 test_name,
+                category_name,
                 unit,
                 numeric_value: None,
                 text_value: None,

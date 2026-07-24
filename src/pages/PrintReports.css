@@ -1,12 +1,14 @@
+/* ═══════════════════════════════════════
+   Print Report — Clinical Table Layout
+   ═══════════════════════════════════════ */
 
-/* ── Shell ── */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  font-family: 'Segoe UI', Arial, sans-serif;
-  font-size:   13px;
-  background:  #f0f0f0;
-  color:       #111;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size:   12px;
+  background:  #d8d8d8;
+  color:       #000000;
 }
 
 .print-loading {
@@ -15,182 +17,188 @@ body {
   justify-content: center;
   height:          100vh;
   font-size:       16px;
-  color:           #555;
+  color:           #333;
 }
 
-.print-shell {
-  min-height: 100vh;
-  background: #f0f0f0;
-}
+.print-shell { min-height: 100vh; background: #d8d8d8; }
 
 /* ── Toolbar ── */
 .print-toolbar {
   position:        sticky;
   top:             0;
   z-index:         100;
-  background:      #ffffff;
-  border-bottom:   1px solid #ddd;
-  padding:         10px 20px;
+  background:      #1a1a1a;
+  padding:         12px 24px;
   display:         flex;
   align-items:     center;
   justify-content: space-between;
-  box-shadow:      0 2px 6px rgba(0,0,0,0.08);
+  box-shadow:      0 2px 8px rgba(0,0,0,0.3);
 }
+.print-toolbar__title { font-weight: 600; font-size: 14px; color: #fff; }
+.print-toolbar__req   { font-size: 12px; color: #999; margin-left: 10px; }
 
-.print-btn {
-  padding:       6px 16px;
-  border-radius: 6px;
-  border:        none;
-  background:    #0066cc;
-  color:         white;
-  font-size:     13px;
-  font-weight:   600;
-  cursor:        pointer;
+.print-mode-switch { display: flex; gap: 4px; background: #2a2a2a; padding: 3px; border-radius: 8px; }
+.print-mode-btn {
+  padding: 6px 14px; border-radius: 6px; border: none; background: transparent;
+  color: #aaa; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.15s ease;
 }
-.print-btn:hover { background: #0055aa; }
-.print-btn--secondary { background: #666; }
-.print-btn--secondary:hover { background: #444; }
+.print-mode-btn--active { background: #fff; color: #111; }
+
+.print-toolbar__actions { display: flex; gap: 10px; }
+.print-btn {
+  padding: 8px 18px; border-radius: 6px; border: none; background: #2563eb;
+  color: white; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.15s ease;
+}
+.print-btn:hover { background: #1d4ed8; }
+.print-btn--secondary { background: #444; }
+.print-btn--secondary:hover { background: #333; }
 
 /* ── Page ── */
 .print-page {
   width:      210mm;
   min-height: 297mm;
-  margin:     20px auto;
-  background: white;
-  padding:    20mm 15mm;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  margin:     24px auto;
+  background: #ffffff;
+  padding:    16mm 14mm;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+  color:      #000000;
+}
+.print-page--template { padding-top: 42mm; padding-bottom: 42mm; }
+
+/* ── Title header ── */
+.print-title {
+  text-align:     center;
+  font-size:      22px;
+  font-weight:    800;
+  letter-spacing: 0.02em;
+  padding-bottom: 3mm;
+  border-bottom:  2.5px solid #000;
+  margin-bottom:  4mm;
 }
 
-.print-page--template {
-  padding-top:    40mm;
-  padding-bottom: 40mm;
+/* ── Lab info block ── */
+.print-lab-block {
+  text-align:     center;
+  padding-bottom: 4mm;
+  border-bottom:  2px solid #000;
+  margin-bottom:  4mm;
 }
+.print-lab-block__name { font-size: 15px; font-weight: 700; margin-bottom: 2px; }
+.print-lab-block p     { font-size: 11px; color: #333; line-height: 1.5; }
 
-/* ── Header ── */
-.print-header {
-  display:         flex;
-  justify-content: space-between;
-  align-items:     flex-start;
-  margin-bottom:   6mm;
+/* ── Patient info grid (shaded box) ── */
+.print-info-box {
+  border:        1.5px solid #000;
+  margin-bottom: 4mm;
 }
-.print-lab-name {
-  font-size:   18px;
-  font-weight: 700;
-  margin-bottom: 4px;
+.print-info-row {
+  display:              grid;
+  grid-template-columns: 1fr 1fr;
+  border-bottom:        1px solid #000;
 }
-.print-header__lab p { font-size: 12px; color: #444; margin-top: 2px; }
-.print-header__title { text-align: right; }
-.print-header__title h2 { font-size: 15px; font-weight: 700; letter-spacing: 1px; }
-.print-header__title p  { font-size: 12px; margin-top: 4px; color: #444; }
+.print-info-row:last-child { border-bottom: none; }
 
-/* ── Divider ── */
-.print-divider {
-  border:     none;
-  border-top: 1.5px solid #111;
-  margin:     4mm 0;
-}
-
-/* ── Patient info ── */
-.print-patient { margin-bottom: 4mm; }
-.print-patient__row {
+.print-info-cell {
   display:               grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap:                   4mm;
-  margin-bottom:         3mm;
+  grid-template-columns: 42% 58%;
+  padding:               2.2mm 3mm;
+  border-right:          1px solid #000;
 }
-.print-patient__field { display: flex; flex-direction: column; }
-.print-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; color: #666; }
-.print-value { font-size: 13px; font-weight: 500; margin-top: 1px; }
+.print-info-cell:last-child { border-right: none; }
+.print-info-cell--shaded { background: #f0f0f0; }
+
+.print-info-label { font-size: 11px; font-weight: 700; color: #000; }
+.print-info-value { font-size: 11px; color: #000; }
+
+/* Some rows only have one cell spanning full width (e.g. patient name) */
+.print-info-row--single .print-info-cell { grid-column: 1 / -1; }
+
+/* ── Section / department header ── */
+.print-section-header {
+  background:     #e5e5e5;
+  border:         1.5px solid #000;
+  border-bottom:  none;
+  padding:        2mm 3mm;
+  font-size:      11.5px;
+  font-weight:    700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-top:     3mm;
+}
+.print-section-header:first-of-type { margin-top: 0; }
 
 /* ── Results table ── */
-.print-table {
+.print-results-table {
   width:           100%;
   border-collapse: collapse;
-  margin-bottom:   6mm;
-  font-size:       12px;
+  margin-bottom:   1mm;
 }
-.print-table th {
-  background:     #f5f5f5;
-  border:         1px solid #ccc;
-  padding:        4px 8px;
+.print-results-table th {
+  border:         1.5px solid #000;
+  border-top:     none;
+  padding:        1.8mm 3mm;
   text-align:     left;
-  font-size:      10px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  font-size:      10.5px;
   font-weight:    700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  background:     #ffffff;
 }
-.print-table td {
-  border:  1px solid #ddd;
-  padding: 5px 8px;
+.print-results-table td {
+  border-left:  1.5px solid #000;
+  border-right: 1.5px solid #000;
+  border-bottom: 1px solid #ccc;
+  padding:      1.8mm 3mm;
+  font-size:    11.5px;
 }
-.print-table tr:nth-child(even) td { background: #fafafa; }
+.print-results-table tbody tr:last-child td { border-bottom: 1.5px solid #000; }
 
-.print-test-code {
-  display:      inline-block;
-  font-family:  monospace;
-  font-size:    10px;
-  color:        #666;
-  margin-right: 6px;
+.print-results-table tr.abnormal td { font-weight: 700; }
+.print-flag-cell { font-weight: 700; font-size: 10.5px; }
+
+/* ── Notes ── */
+.print-notes {
+  margin-top:    4mm;
+  padding:       2.5mm 0;
 }
-.print-test-name { font-weight: 500; }
-.print-value-cell { font-size: 13px; }
-
-.print-row--abnormal td { background: #fff8f8 !important; }
-
-.print-flag            { font-size: 10px; font-weight: 700; }
-.print-flag--high      { color: #d97706; }
-.print-flag--low       { color: #2563eb; }
-.print-flag--critical_high,
-.print-flag--critical_low { color: #dc2626; }
+.print-notes__title { font-size: 12px; font-weight: 700; margin-bottom: 1.5mm; }
+.print-notes p { font-size: 11px; color: #222; margin-left: 3mm; line-height: 1.6; }
 
 /* ── Signatures ── */
 .print-signatures {
   display:               grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap:                   15mm;
-  margin-bottom:         8mm;
-  margin-top:            10mm;
+  grid-template-columns: 1fr 1fr;
+  gap:                   20mm;
+  margin-top:            14mm;
 }
-.print-sig { text-align: center; }
 .print-sig__line {
-  border-bottom: 1px solid #333;
-  margin-bottom: 4px;
-  height:        10mm;
+  border-bottom: 1px solid #000;
+  height:        8mm;
 }
-.print-sig span { font-size: 10px; color: #555; }
+.print-sig__label { font-size: 11px; margin-top: 1.5mm; }
+.print-sig__role  { font-size: 10px; color: #555; text-align: right; margin-top: 1mm; }
 
 /* ── Footer ── */
 .print-footer {
-  text-align:  center;
-  font-size:   10px;
-  color:       #666;
-  border-top:  1px solid #ddd;
-  padding-top: 4mm;
+  display:         flex;
+  justify-content: space-between;
+  margin-top:      6mm;
+  padding-top:     2.5mm;
+  border-top:      1px solid #000;
+  font-size:       10px;
+  color:           #333;
 }
 
 /* ── Print media ── */
 @media print {
   body { background: white; }
-
   .no-print { display: none !important; }
-
   .print-shell { background: white; }
-
   .print-page {
-    width:      100%;
-    margin:     0;
-    padding:    10mm 15mm;
-    box-shadow: none;
-    min-height: unset;
+    width: 100%; margin: 0; padding: 10mm 14mm;
+    box-shadow: none; min-height: unset;
   }
-
-  .print-page--template {
-    padding-top:    40mm;
-    padding-bottom: 40mm;
-  }
-
-  @page {
-    size:   A4;
-    margin: 0;
-  }
+  .print-page--template { padding-top: 42mm; padding-bottom: 42mm; }
+  @page { size: A4; margin: 0; }
 }
+

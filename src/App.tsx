@@ -15,6 +15,8 @@ import Results from "./pages/Results";
 import PrintReport from "./pages/PrintReports";
 
 export default function App() {
+  console.log("RENDER App, href:", window.location.href);
+  
   const session = useAuthStore((s) => s.session);
   const loadSettings = useSettingsStore((s) => s.load);
 
@@ -25,33 +27,35 @@ export default function App() {
 
   return (
     <Routes>
+      { /*Print route - always accessable no shell, no auth check */}
       <Route path="/print/:requestId" element={<PrintReport />} />
 
+      {/* Main app */}
       <Route path="*" element={
-    <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-      <TitleBar />
-      <div style={{ flex: 1, overflow: "hidden" }}>
-        <Routes>
-          {!session ? (
-            <>
-              <Route path="/login" element={<Login />} />
-              <Route path="*" element={<Navigate to="/login" replace />} />
-            </>
-          ) : (
-            <Route element={<Shell />}>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/requests" element={<Requests />} />
-              <Route path="/results/:requestId" element={<Results />} />
-              <Route path="/patients" element={<Patients />} />
-              <Route path="/investigations" element={<Investigations />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/users" element={<Users />} />
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Route>
-          )}
-        </Routes>
-      </div>
-    </div> } />
+        <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
+          <TitleBar />
+          <div style={{ flex: 1, overflow: "hidden" }}>
+            <Routes>
+              {!session ? (
+                <>
+                  <Route path="/login" element={<Login />} />
+                  <Route path="*" element={<Navigate to="/login" replace />} />
+                </>
+              ) : (
+                <Route element={<Shell />}>
+                  <Route path="/" element={<Dashboard />} />
+                  <Route path="/requests" element={<Requests />} />
+                  <Route path="/results/:requestId" element={<Results />} />
+                  <Route path="/patients" element={<Patients />} />
+                  <Route path="/investigations" element={<Investigations />} />
+                  <Route path="/settings" element={<Settings />} />
+                  <Route path="/users" element={<Users />} />
+                  <Route path="*" element={<Navigate to="/" replace />} />
+                </Route>
+              )}
+            </Routes>
+          </div>
+        </div> } />
     </Routes>
   );
 }

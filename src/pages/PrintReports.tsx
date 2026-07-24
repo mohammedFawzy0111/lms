@@ -7,6 +7,7 @@ import "./PrintReports.css";
 interface Result_ {
   test_code:     string;
   test_name:     string;
+  category_name: string | null;
   unit:          string | null;
   numeric_value: number | null;
   text_value:    string | null;
@@ -24,7 +25,6 @@ interface RequestResultsView {
   patient_age:    number | null;
   patient_gender: string | null;
   results:        Result_[];
-  request_date?:  string;
 }
 
 interface LabSettings {
@@ -32,7 +32,7 @@ interface LabSettings {
   lab_address: string;
   lab_phone:   string;
   lab_email:   string;
-  print_mode?:  string;
+  print_mode?: string;
 }
 
 interface PrintData {
@@ -43,7 +43,7 @@ interface PrintData {
 interface ApiResult<T> { ok: boolean; data: T | null; error: string | null; }
 
 const FLAG_LABELS: Record<string, string> = {
-  low: "LOW ↓", high: "HIGH ↑", critical_low: "CRITICAL LOW ↓↓", critical_high: "CRITICAL HIGH ↑↑",
+  low: "LOW", high: "HIGH", critical_low: "CRIT LOW", critical_high: "CRIT HIGH",
 };
 
 export default function PrintReport() {
@@ -63,164 +63,172 @@ export default function PrintReport() {
     });
   }, [requestId]);
 
-  function handlePrint() {
-    window.print();
-  }
-
-  async function handleClose() {
-    await getCurrentWindow().close();
-  }
+  function handlePrint() { window.print(); }
+  async function handleClose() { await getCurrentWindow().close(); }
 
   if (loading) return <div className="print-loading">Loading report...</div>;
   if (!data)   return <div className="print-loading">Failed to load report.</div>;
 
   const { results: view, settings } = data;
-  const printMode = mode;
+
+  // Group results by category, preserving encounter order
+  const groups: { name: string; items: Result_[] }[] = [];
+  for (const r of view.results) {
+    const catName = r.category_name ?? "General";
+    let group = groups.find((g) => g.name === catName);
+    if (!group) { group = { name: catName, items: [] }; groups.push(group); }
+    group.items.push(r);
+  }
+
+  // Collect abnormal findings for the notes section
+  const abnormal = view.results.filter((r) => r.flag && r.flag !== "normal");
+
+  const ageDisplay = view.patient_dob
+    ? `${calcAge(view.patient_dob)}`
+    : view.patient_age ? `${view.patient_age}y (est.)` : "—";
 
   return (
     <div className="print-shell">
-      {/* Toolbar — hidden on print */}
       <div className="print-toolbar no-print">
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <span style={{ fontWeight: 600, fontSize: 14 }}>Print Preview</span>
-          <span style={{ fontSize: 12, color: "#666" }}>{view.request_no}</span>
+        <div>
+          <span className="print-toolbar__title">Print Preview</span>
+          <span className="print-toolbar__req">{view.request_no}</span>
         </div>
-        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          <label style={{ fontSize: 13, display: "flex", alignItems: "center", gap: 6 }}>
-            <input type="radio" value="full"     checked={printMode === "full"}     onChange={() => setMode("full")} />
+
+        <div className="print-mode-switch">
+          <button className={`print-mode-btn ${mode === "full" ? "print-mode-btn--active" : ""}`} onClick={() => setMode("full")}>
             Full Report
-          </label>
-          <label style={{ fontSize: 13, display: "flex", alignItems: "center", gap: 6 }}>
-            <input type="radio" value="template" checked={printMode === "template"} onChange={() => setMode("template")} />
+          </button>
+          <button className={`print-mode-btn ${mode === "template" ? "print-mode-btn--active" : ""}`} onClick={() => setMode("template")}>
             Preprinted Paper
-          </label>
-          <button className="print-btn" onClick={handlePrint}>🖨 Print / Save PDF</button>
+          </button>
+        </div>
+
+        <div className="print-toolbar__actions">
           <button className="print-btn print-btn--secondary" onClick={handleClose}>Close</button>
+          <button className="print-btn" onClick={handlePrint}>🖨 Print / Save PDF</button>
         </div>
       </div>
 
-      {/* Report page */}
-      <div className={`print-page ${printMode === "template" ? "print-page--template" : ""}`}>
+      <div className={`print-page ${mode === "template" ? "print-page--template" : ""}`}>
 
-        {/* Header — only in full mode */}
-        {printMode === "full" && (
-          <div className="print-header">
-            <div className="print-header__lab">
-              <h1 className="print-lab-name">{settings.lab_name}</h1>
+        {mode === "full" && (
+          <>
+            <div className="print-title">LAB INVESTIGATION RESULTS</div>
+            <div className="print-lab-block">
+              <div className="print-lab-block__name">{settings.lab_name}</div>
               {settings.lab_address && <p>{settings.lab_address}</p>}
               <p>
-                {settings.lab_phone && <span>Tel: {settings.lab_phone}</span>}
-                {settings.lab_phone && settings.lab_email && <span> · </span>}
-                {settings.lab_email && <span>Email: {settings.lab_email}</span>}
+                {settings.lab_phone && <span>{settings.lab_phone}</span>}
+                {settings.lab_phone && settings.lab_email && <span>  ·  </span>}
+                {settings.lab_email && <span>{settings.lab_email}</span>}
               </p>
             </div>
-            <div className="print-header__title">
-              <h2>LABORATORY REPORT</h2>
-              <p>Report No: <strong>{view.request_no}</strong></p>
-              <p>Date: <strong>{new Date().toLocaleDateString()}</strong></p>
-            </div>
-          </div>
+          </>
         )}
 
-        <div className="print-divider" />
-
-        {/* Patient info */}
-        <div className="print-patient">
-          <div className="print-patient__row">
-            <div className="print-patient__field">
-              <span className="print-label">Patient Name</span>
-              <span className="print-value">{view.patient_name}</span>
+        {/* Patient info box */}
+        <div className="print-info-box">
+          <div className="print-info-row">
+            <div className="print-info-cell print-info-cell--shaded">
+              <span className="print-info-label">Patient Name:</span>
+              <span className="print-info-value">{view.patient_name}</span>
             </div>
-            <div className="print-patient__field">
-              <span className="print-label">Patient ID</span>
-              <span className="print-value">{view.patient_no}</span>
-            </div>
-            <div className="print-patient__field">
-              <span className="print-label">Gender</span>
-              <span className="print-value" style={{ textTransform: "capitalize" }}>{view.patient_gender ?? "—"}</span>
-            </div>
-            <div className="print-patient__field">
-              <span className="print-label">Age</span>
-              <span className="print-value">
-                {view.patient_dob ? calcAge(view.patient_dob) : view.patient_age ? `${view.patient_age}y (est.)` : "—"}
-              </span>
+            <div className="print-info-cell">
+              <span className="print-info-label">Patient ID:</span>
+              <span className="print-info-value">{view.patient_no}</span>
             </div>
           </div>
-          <div className="print-patient__row">
-            <div className="print-patient__field">
-              <span className="print-label">Request No</span>
-              <span className="print-value">{view.request_no}</span>
+          <div className="print-info-row">
+            <div className="print-info-cell print-info-cell--shaded">
+              <span className="print-info-label">DOB / Age / Sex:</span>
+              <span className="print-info-value">
+                {view.patient_dob ? formatDob(view.patient_dob) : "—"} ({ageDisplay}) / {view.patient_gender ? view.patient_gender.charAt(0).toUpperCase() : "—"}
+              </span>
             </div>
-            <div className="print-patient__field">
-              <span className="print-label">Print Date</span>
-              <span className="print-value">{new Date().toLocaleString()}</span>
+            <div className="print-info-cell">
+              <span className="print-info-label">Request No:</span>
+              <span className="print-info-value">{view.request_no}</span>
+            </div>
+          </div>
+          <div className="print-info-row">
+            <div className="print-info-cell print-info-cell--shaded">
+              <span className="print-info-label">Report Status:</span>
+              <span className="print-info-value">Final</span>
+            </div>
+            <div className="print-info-cell">
+              <span className="print-info-label">Print Date:</span>
+              <span className="print-info-value">{new Date().toLocaleString()}</span>
             </div>
           </div>
         </div>
 
-        <div className="print-divider" />
+        {/* Results grouped by category */}
+        {groups.map((group) => (
+          <div key={group.name}>
+            <div className="print-section-header">{group.name}</div>
+            <table className="print-results-table">
+              <thead>
+                <tr>
+                  <th style={{ width: "34%" }}>Test / Parameter</th>
+                  <th style={{ width: "16%" }}>Result</th>
+                  <th style={{ width: "14%" }}>Units</th>
+                  <th style={{ width: "26%" }}>Reference Range</th>
+                  <th style={{ width: "10%" }}>Flag</th>
+                </tr>
+              </thead>
+              <tbody>
+                {group.items.map((r) => {
+                  const isAbnormal = !!r.flag && r.flag !== "normal";
+                  return (
+                    <tr key={r.test_code} className={isAbnormal ? "abnormal" : ""}>
+                      <td>{r.test_name}</td>
+                      <td>{r.numeric_value != null ? r.numeric_value : (r.text_value ?? "—")}</td>
+                      <td>{r.unit ?? "—"}</td>
+                      <td>{r.ref_min != null && r.ref_max != null ? `${r.ref_min}–${r.ref_max}` : "—"}</td>
+                      <td className="print-flag-cell">
+                        {r.flag && r.flag !== "normal" ? (FLAG_LABELS[r.flag] ?? r.flag.toUpperCase()) : ""}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        ))}
 
-        {/* Results table */}
-        <table className="print-table">
-          <thead>
-            <tr>
-              <th>Test</th>
-              <th>Result</th>
-              <th>Unit</th>
-              <th>Reference Range</th>
-              <th>Flag</th>
-            </tr>
-          </thead>
-          <tbody>
-            {view.results.map((r) => (
-              <tr key={r.test_code} className={r.flag && r.flag !== "normal" ? "print-row--abnormal" : ""}>
-                <td>
-                  <span className="print-test-code">{r.test_code}</span>
-                  <span className="print-test-name">{r.test_name}</span>
-                </td>
-                <td className="print-value-cell">
-                  <strong>{r.numeric_value != null ? r.numeric_value : (r.text_value ?? "—")}</strong>
-                </td>
-                <td>{r.unit ?? "—"}</td>
-                <td>
-                  {r.ref_min != null && r.ref_max != null
-                    ? `${r.ref_min} – ${r.ref_max}`
-                    : "—"}
-                </td>
-                <td className={`print-flag print-flag--${r.flag ?? "normal"}`}>
-                  {r.flag && r.flag !== "normal" ? FLAG_LABELS[r.flag] ?? r.flag : ""}
-                </td>
-              </tr>
+        {/* Notes / remarks — only if there are abnormal findings */}
+        {abnormal.length > 0 && (
+          <div className="print-notes">
+            <div className="print-notes__title">Notes &amp; Remarks:</div>
+            {abnormal.map((r) => (
+              <p key={r.test_code}>
+                * {r.test_name} {r.flag === "high" || r.flag === "critical_high" ? "elevated" : "low"}; correlate clinically with patient symptoms.
+              </p>
             ))}
-          </tbody>
-        </table>
-
-        <div className="print-divider" />
-
-        {/* Signature area */}
-        {printMode === "full" && (
-          <div className="print-signatures">
-            <div className="print-sig">
-              <div className="print-sig__line" />
-              <span>Technician Signature</span>
-            </div>
-            <div className="print-sig">
-              <div className="print-sig__line" />
-              <span>Authorized By</span>
-            </div>
-            <div className="print-sig">
-              <div className="print-sig__line" />
-              <span>Date</span>
-            </div>
           </div>
         )}
 
-        {/* Footer — only in full mode */}
-        {printMode === "full" && (
-          <div className="print-footer">
-            <p>This report is generated by {settings.lab_name}. For queries, contact {settings.lab_phone || settings.lab_email || "the laboratory"}.</p>
-            <p style={{ marginTop: 4, fontSize: 9 }}>*** End of Report ***</p>
-          </div>
+        {mode === "full" && (
+          <>
+            <div className="print-signatures">
+              <div>
+                <div className="print-sig__line" />
+                <div className="print-sig__label">Evaluated By: _______________________</div>
+                <div className="print-sig__role">Medical Technologist, MT</div>
+              </div>
+              <div>
+                <div className="print-sig__line" />
+                <div className="print-sig__label">Authorized By: _______________________</div>
+                <div className="print-sig__role">Pathologist, MD</div>
+              </div>
+            </div>
+
+            <div className="print-footer">
+              <span>Page 1 of 1</span>
+              <span>Generated: {new Date().toLocaleString()}</span>
+            </div>
+          </>
         )}
       </div>
     </div>
@@ -231,6 +239,11 @@ function calcAge(dob: string): string {
   const birth = new Date(dob);
   if (isNaN(birth.getTime())) return "—";
   const years = Math.floor((Date.now() - birth.getTime()) / (365.25 * 24 * 60 * 60 * 1000));
-  return `${years}y`;
+  return `${years}Y`;
 }
 
+function formatDob(dob: string): string {
+  const d = new Date(dob);
+  if (isNaN(d.getTime())) return dob;
+  return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).replace(/ /g, "-");
+}
