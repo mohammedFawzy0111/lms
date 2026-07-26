@@ -104,6 +104,7 @@ pub fn run() {
             commands::cmd_finalize_results,
             commands::cmd_log_report,
             commands::cmd_get_print_data,
+            commands::cmd_list_report_log,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

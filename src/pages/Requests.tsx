@@ -57,6 +57,13 @@ interface Profile {
   test_count: number;
 }
 
+interface ReportLogEntry {
+  id: string;
+  generated_by: string | null;
+  generated_by_name: string | null;
+  generated_at: string;
+}
+
 
 interface ApiResult<T> { ok: boolean; data: T | null; error: string | null; }
 
@@ -79,8 +86,17 @@ export default function Requests() {
   const [error, setError] = useState<string | null>(null);
   const [showNew, setShowNew] = useState(false);
   const [detailId, setDetailId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const navigate = useNavigate();
+
+  function toggleSelect(id: string){
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if(next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }
 
   async function openPrint(requestId: string) {
     const label = `print_${requestId.slice(0, 8)}`;
@@ -94,6 +110,15 @@ export default function Requests() {
       resizable: true,
     });
     win.once("tauri://error", (e) => console.error("Print window error:", e));
+  }
+
+
+  function printSelected() {
+    let index = 0;
+    selectedIds.forEach((id) => {
+      setTimeout(() => openPrint(id), index * 300);
+      index += 1;
+    });
   }
   
   const load = useCallback(async (status: string, q: string) => {
@@ -124,6 +149,9 @@ export default function Requests() {
           <h1 className="page-title">Lab Requests</h1>
           <p className="page-sub">{requests.length} request{requests.length !== 1 ? "s" : ""}</p>
         </div>
+        {selectedIds.size > 0 && (
+          <button className="action-btn" onClick={printSelected}>Print Selected({selectedIds.size})</button>
+        )}
         <button className="save-btn" onClick={() => setShowNew(true)}>+ New Request</button>
       </header>
 
@@ -151,6 +179,9 @@ export default function Requests() {
           <table className="users-table">
             <thead>
               <tr>
+                <th style={{width: 30}}>
+                  <input type="checkbox" checked={selectedIds.size > 0 && selectedIds.size === requests.length} onChange={(e) => setSelectedIds(e.target.checked ? new Set(requests.map(r => r.id)) : new Set())}/>
+                </th>
                 <th>Request #</th><th>Patient</th><th>Tests</th><th>Priority</th>
                 <th>Status</th><th>Requested</th><th>Actions</th>
               </tr>
@@ -158,6 +189,9 @@ export default function Requests() {
             <tbody>
               {requests.map((r) => (
                 <tr key={r.id}>
+                  <td>
+                  <input type="checkbox" checked={selectedIds.has(r.id)} onChange={() => toggleSelect(r.id)} />
+                  </td>
                   <td><span className="font-mono" style={{ fontSize: 12 }}>{r.request_no}</span></td>
                   <td>
                     <div className="user-cell">
@@ -208,6 +242,7 @@ export default function Requests() {
           actorId={currentUser?.id ?? ""}
           onClose={() => setDetailId(null)}
           onChanged={() => load(statusFilter, query)}
+          onPrint={openPrint}
         />
       )}
     </div>
@@ -494,12 +529,13 @@ function NewRequestModal({ actorId, onClose, onSaved }: {
 }
 
 // ── Request Detail Modal ──────────────────────────────────────────────────────
-function RequestDetailModal({ requestId, actorId, onClose, onChanged }: {
-  requestId: string; actorId: string; onClose: () => void; onChanged: () => void;
+function RequestDetailModal({ requestId, actorId, onClose, onChanged, onPrint }: {
+  requestId: string; actorId: string; onClose: () => void; onChanged: () => void; onPrint: (id:string) => void;
 }) {
   const [detail, setDetail] = useState<RequestDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [printHistory, setPrintHistry] = useState<ReportLogEntry[]>([]);
 
   async function load() {
     setLoading(true);
@@ -512,8 +548,13 @@ function RequestDetailModal({ requestId, actorId, onClose, onChanged }: {
       setLoading(false);
     }
   }
+  
+  async function loadPrintHistory() {
+    const res = await invoke<ApiResult<ReportLogEntry[]>>("cmd_list_report_log", { requestId });
+    if(res.ok && res.data) setPrintHistry(res.data);
+  }
 
-  useEffect(() => { load(); }, [requestId]);
+  useEffect(() => { load(); loadPrintHistory();}, [requestId]);
 
   async function changeStatus(status: string) {
     try {
@@ -589,6 +630,27 @@ function RequestDetailModal({ requestId, actorId, onClose, onChanged }: {
               ))}
             </tbody>
           </table>
+          {printHistory.length > 0 && (
+            <div style={{marginTop: 20}}>
+              <label className="field__label" style={{marginBottom: 8, display: "block"}}>
+              Print History ({printHistory.length})
+              </label>
+              <table className="ranges-table">
+                <thead><tr><th>Printed By</th><th>Date & Time</th><th></th></tr></thead>
+                <tbody>
+                  {printHistory.map((p) => (
+                    <tr key={p.id}>
+                      <td>{p.generated_by_name ?? "Unknown"}</td>
+                      <td style={{ fontSize: 12, color: "var(--text-muted)" }}>{p.generated_at}</td>
+                      <td>
+                        <button className="action-btn" onClick={()=> onPrint(detail.id)}>Reprint</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
         <div className="modal__footer">
           <button className="action-btn" onClick={onClose}>Close</button>

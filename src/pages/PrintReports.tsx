@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
+import { useAuthStore } from "../stores/authStore";
 import "./PrintReports.css";
 
 interface Result_ {
@@ -51,6 +52,7 @@ export default function PrintReport() {
   const [data,    setData]    = useState<PrintData | null>(null);
   const [loading, setLoading] = useState(true);
   const [mode,    setMode]    = useState<"full" | "template">("full");
+  const currentUserId = useAuthStore((s) => s.session?.user.id) ?? "";
 
   useEffect(() => {
     if (!requestId) return;
@@ -63,8 +65,13 @@ export default function PrintReport() {
     });
   }, [requestId]);
 
-  function handlePrint() { window.print(); }
-  async function handleClose() { await getCurrentWindow().close(); }
+  function handlePrint() { 
+    if(requestId) {
+      invoke("cmd_log_report", {actorId: currentUserId, requestId}).catch(()=>{});
+    }
+    window.print();
+  }
+  async function handleClose() { await getCurrentWindow().destroy(); }
 
   if (loading) return <div className="print-loading">Loading report...</div>;
   if (!data)   return <div className="print-loading">Failed to load report.</div>;

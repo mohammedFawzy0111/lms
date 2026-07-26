@@ -36,6 +36,14 @@ pub struct PrintData {
     pub settings: LabSettings,
 }
 
+#[derive(Debug, Serialize)]
+pub struct ReportLogEntry {
+    pub id: String,
+    pub generated_by: Option<String>,
+    pub generated_by_name: Option<String>,
+    pub generated_at: String
+}
+
 // ── Auth ──────────────────────────────────────────────────────────────────────
 
 #[tauri::command]
@@ -609,4 +617,31 @@ pub fn cmd_get_print_data(state: State<AppState>, request_id: String) -> ApiResu
     };
 
     ApiResult::ok(PrintData { results, settings })
+}
+
+#[tauri::command]
+pub fn cmd_list_report_log(
+    state: State<AppState>,
+    request_id: String,
+) -> ApiResult<Vec<ReportLogEntry>> {
+    let conn = state.db.lock().unwrap();
+    let mut stmt = match conn.prepare(
+        "SELECT rl.id, rl.generated_by, u.full_name, rl.generated_at FROM report_log rl
+        LEFT JOIN users u ON u.id = rl.generated_by
+        WHERE rl.request_id = ?1 ORDER BY rl.generated_at DESC"
+    ) {
+        Ok(s) => s,
+        Err(e) => return ApiResult::err(e.to_string()),
+    };
+
+    let enteries: Vec<ReportLogEntry> = stmt.query_map(params![request_id], |row| {
+        Ok(ReportLogEntry{
+            id: row.get(0)?,
+            generated_by: row.get(1)?,
+            generated_by_name: row.get(2)?,
+            generated_at: row.get(3)?,
+        })
+    }).map(|rows| rows.filter_map(|r| r.ok()).collect()).unwrap_or_default();
+
+    ApiResult::ok(enteries)
 }
