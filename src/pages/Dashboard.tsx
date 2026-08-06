@@ -1,5 +1,5 @@
 import { useAuthStore } from "../stores/authStore";
-import "./Dashboard.css";
+import "./styles/Dashboard.css";
 
 export default function Dashboard() {
   const user = useAuthStore((s) => s.session?.user);

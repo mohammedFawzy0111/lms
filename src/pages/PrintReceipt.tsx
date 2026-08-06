@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import "./PrintReceipt.css";
+import "./styles/PrintReceipt.css";
 
 interface Payment {
   id: string;

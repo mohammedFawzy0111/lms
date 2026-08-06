@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useAuthStore, User } from "../stores/authStore";
 import { useEnterKeyNav } from "../hooks/useEnterKeyNav"
-import "./Users.css";
-import "./Dashboard.css";
+import "./styles/Dashboard.css";
+import "./styles/Users.css";
 
 
 interface ApiResult<T> {

@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useAuthStore } from "../stores/authStore";
-import "./PrintReports.css";
+import "./styles/PrintReports.css";
 
 interface Result_ {
   test_code:     string;

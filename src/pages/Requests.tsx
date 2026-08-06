@@ -1,11 +1,11 @@
 import { useEffect, useState, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { useAuthStore } from "../stores/authStore";
-import "./Requests.css";
-import "./Dashboard.css";
-import "./Patients.css";
 import { useNavigate } from "react-router-dom";
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { useAuthStore } from "../stores/authStore";
+import "./styles/Dashboard.css";
+import "./styles/Patients.css";
+import "./styles/Requests.css";
 
 interface LabRequest {
   id: string;

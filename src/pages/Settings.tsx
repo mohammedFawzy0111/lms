@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSettingsStore } from "../stores/settingsStore";
-import "./Settings.css";
-import "./Dashboard.css";
+import "./styles/Dashboard.css";
+import "./styles/Settings.css";
 
 export default function Settings() {
   const { settings, update, setTheme } = useSettingsStore();

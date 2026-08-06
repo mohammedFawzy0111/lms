@@ -1,0 +1,115 @@
+
+/* Backdrop background blur and overlay */
+.backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--sp-2, 16px);
+  background-color: var(--bg-overlay, rgba(0, 0, 0, 0.5)); 
+  backdrop-filter: blur(4px);
+}
+
+/* Base Modal Surface Container */
+.modalContainer {
+  width: 100%;
+  background-color: var(--bg-surface, #ffffff);
+  border-radius: var(--r-md);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+  box-sizing: border-box;
+}
+
+/* Sizing Maps */
+.sm { max-width: 440px; }
+.md { max-width: 560px; }
+.lg { max-width: 800px; }
+
+/* Structural Subcomponents */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--sp-2, 16px);
+  border-bottom: 1px solid var(--border);
+}
+
+.title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  font-size: 1.75rem;
+  font-weight: bold;
+  color: var(--text-secondary);
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+}
+
+.closeButton:hover {
+  color: var(--text-primary);
+}
+
+.body {
+  padding: var(--sp-2, 16px);
+  overflow-y: auto;
+  flex: 1;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--sp-2);
+  padding: 16px;
+  border-top: 1px solid var(--border);
+  background-color: var(--bg-base);
+  border-bottom-left-radius: var(--r-md);
+  border-bottom-right-radius: var(--r-md);
+}
+
+/* Buttons Styling */
+.cancelBtn, .submitBtn {
+  padding: 8px 16px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-family: sans-serif;
+}
+
+.cancelBtn {
+  color: #374151;
+  background-color: #ffffff;
+  border: 1px solid #d1d5db;
+}
+
+.cancelBtn:hover {
+  background-color: #f9fafb;
+}
+
+.submitBtn {
+  color: #ffffff;
+  background-color: #2563eb;
+  border: 1px solid transparent;
+}
+
+.submitBtn:hover {
+  background-color: #1d4ed8;
+}

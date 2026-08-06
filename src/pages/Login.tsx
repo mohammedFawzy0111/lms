@@ -1,7 +1,7 @@
 import { useState, ChangeEvent } from "react";
 import { Eye, EyeOff, FlaskConical, AlertCircle, LogIn } from "lucide-react";
 import { useAuthStore } from "../stores/authStore";
-import "./Login.css";
+import "./styles/Login.css";
 
 export default function Login() {
   const [username, setUsername] = useState("");

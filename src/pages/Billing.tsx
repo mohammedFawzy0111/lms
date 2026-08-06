@@ -3,7 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { invoke } from "@tauri-apps/api/core";
 import { useAuthStore } from "../stores/authStore";
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
-import "./Billing.css";
+import "./styles/Billing.css";
 import "./Dashboard.css";
 import "./Patients.css";
 

@@ -1,8 +1,8 @@
 import { useEffect, useState, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useAuthStore } from "../stores/authStore";
-import "./Investigations.css";
-import "./Dashboard.css";
+import "./styles/Dashboard.css";
+import "./styles/Investigations.css";
 
 interface Category {
   id: string;

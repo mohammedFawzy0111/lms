@@ -3,8 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { invoke } from "@tauri-apps/api/core";
 import { useAuthStore } from "../stores/authStore";
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
-import "./Results.css";
-import "./Dashboard.css";
+import "./styles/Dashboard.css";
+import "./styles/Results.css";
 
 interface Result_ {
   id:              string;
