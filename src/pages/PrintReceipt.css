@@ -1,0 +1,85 @@
+
+/* ═══════════════════════════════════════
+   Receipt — 80mm thermal width, scales
+   correctly regardless of loaded paper size
+   ═══════════════════════════════════════ */
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Courier New', monospace;
+  font-size:   12px;
+  background:  #ccc;
+  color:       #000;
+}
+
+.receipt-loading {
+  display: flex; align-items: center; justify-content: center;
+  height: 100vh; font-family: Arial, sans-serif; color: #555;
+}
+
+.receipt-shell { min-height: 100vh; background: #ccc; }
+
+.receipt-toolbar {
+  position: sticky; top: 0; z-index: 100;
+  background: #1a1a1a; padding: 10px 16px;
+  display: flex; align-items: center; justify-content: space-between;
+  font-family: Arial, sans-serif; color: #fff; font-size: 13px;
+}
+.receipt-btn {
+  padding: 6px 14px; border-radius: 6px; border: none;
+  background: #2563eb; color: white; font-size: 12px; font-weight: 600; cursor: pointer;
+}
+.receipt-btn--secondary { background: #555; }
+
+/* Receipt page — fixed 80mm width, auto height */
+.receipt-page {
+  width:      80mm;
+  margin:     16px auto;
+  background: #fff;
+  padding:    5mm 4mm;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+}
+
+.receipt-header { text-align: center; margin-bottom: 3mm; }
+.receipt-lab-name { font-size: 14px; font-weight: 700; text-transform: uppercase; }
+.receipt-lab-line { font-size: 10px; color: #333; margin-top: 1mm; }
+
+.receipt-divider         { border: none; border-top: 1px solid #000; margin: 2mm 0; }
+.receipt-divider--dashed { border: none; border-top: 1px dashed #666; margin: 2.5mm 0; }
+
+.receipt-title {
+  text-align: center; font-size: 12px; font-weight: 700;
+  letter-spacing: 0.1em; margin-bottom: 2.5mm;
+}
+
+.receipt-row {
+  display: flex; justify-content: space-between;
+  font-size: 11px; padding: 0.8mm 0;
+}
+.receipt-row span:first-child { color: #444; }
+.receipt-row span:last-child  { font-weight: 600; text-align: right; }
+
+.receipt-row--big { font-size: 15px; font-weight: 700; padding: 1.5mm 0; }
+.receipt-row--big span:last-child { font-size: 16px; }
+
+.receipt-footer { text-align: center; margin-top: 3mm; }
+.receipt-footer p { font-size: 11px; }
+.receipt-footer__small { font-size: 9px; color: #666; margin-top: 1mm; }
+
+/* ── Print ── */
+@media print {
+  body { background: white; }
+  .no-print { display: none !important; }
+  .receipt-shell { background: white; }
+  .receipt-page {
+    width: 80mm;
+    margin: 0 auto;   /* centers the 80mm content even on A4 paper */
+    padding: 3mm 4mm;
+    box-shadow: none;
+  }
+  @page {
+    size:   80mm auto;  /* thermal printers: exact width, auto height */
+    margin: 0;
+  }
+}

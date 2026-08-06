@@ -1,0 +1,14 @@
+
+.billing-summary {
+  display:               grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap:                   var(--sp-3);
+  padding:               var(--sp-4);
+  background:            var(--bg-elevated);
+  border:                1px solid var(--border);
+  border-radius:         var(--r-md);
+}
+.billing-summary > div { display: flex; flex-direction: column; gap: 4px; }
+.billing-summary span  { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+.billing-summary strong { font-size: 18px; }
+

@@ -654,6 +654,9 @@ function RequestDetailModal({ requestId, actorId, onClose, onChanged, onPrint }:
         </div>
         <div className="modal__footer">
           <button className="action-btn" onClick={onClose}>Close</button>
+          <button className="action-btn" onClick={() => window.location.hash = `#/billing?request=${detail.id}`}>
+          💳 Billing
+          </button>
         </div>
       </div>
     </div>

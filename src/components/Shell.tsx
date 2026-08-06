@@ -2,7 +2,7 @@ import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Users, Settings,
   LogOut, Sun, Moon, ChevronLeft, ChevronRight,
-  FlaskConical, UserPlus, TestTube2, ClipboardList,
+  FlaskConical, UserPlus, TestTube2, ClipboardList, Receipt
 } from "lucide-react";
 import { useState } from "react";
 import { clsx } from "clsx";
@@ -13,6 +13,7 @@ import "./styles/Shell.css";
 const NAV = [
   { to: "/", label: "Dashboard", icon: <LayoutDashboard size={15} />, end: true },
   { to: "/requests", label: "Requests", icon: <ClipboardList size={15} /> },
+  { to: "/billing", label: "Billing", icon: <Receipt size={15} /> },
   { to: "/investigations", label: "Investigations", icon: <TestTube2 size={15} /> },
   { to: "/patients", label: "Patients", icon: <UserPlus size={15} /> },
   { to: "/users", label: "Users", icon: <Users size={15} /> },

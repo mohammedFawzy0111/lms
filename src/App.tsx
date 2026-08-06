@@ -13,6 +13,8 @@ import Investigations from "./pages/Investigations";
 import Requests from "./pages/Requests"
 import Results from "./pages/Results";
 import PrintReport from "./pages/PrintReports";
+import Billing from "./pages/Billing";
+import PrintReceipt from "./pages/PrintReceipt"
 
 export default function App() {
   console.log("RENDER App, href:", window.location.href);
@@ -29,6 +31,7 @@ export default function App() {
     <Routes>
       { /*Print route - always accessable no shell, no auth check */}
       <Route path="/print/:requestId" element={<PrintReport />} />
+      <Route path="/receipt/:paymentId" element={<PrintReceipt />} />
 
       {/* Main app */}
       <Route path="*" element={
@@ -50,6 +53,7 @@ export default function App() {
                   <Route path="/investigations" element={<Investigations />} />
                   <Route path="/settings" element={<Settings />} />
                   <Route path="/users" element={<Users />} />
+                  <Route path="/billing" element={<Billing />} />
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Route>
               )}
