@@ -1,7 +1,7 @@
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { Minus, Square, X, Microscope } from "lucide-react";
 import { useSettingsStore } from "../stores/settingsStore";
-import "./TitleBar.css";
+import "./styles/TitleBar.css"; 
 
 
 const appWindow = getCurrentWindow();

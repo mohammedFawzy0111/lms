@@ -8,7 +8,7 @@ import { useState } from "react";
 import { clsx } from "clsx";
 import { useAuthStore } from "../stores/authStore";
 import { useSettingsStore } from "../stores/settingsStore";
-import "./Shell.css";
+import "./styles/Shell.css";
 
 const NAV = [
   { to: "/", label: "Dashboard", icon: <LayoutDashboard size={15} />, end: true },
