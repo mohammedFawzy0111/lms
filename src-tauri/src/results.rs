@@ -202,8 +202,17 @@ pub fn get_request_results(conn: &Connection, request_id: &str) -> Result<Reques
          WHERE ri.request_id = ?1",
     )?;
 
-    let items: Vec<(String, String, String, String, Option<String>, Option<f64>, Option<f64>,Option<String>)> =
-        stmt.query_map(params![request_id], |row| {
+    let items: Vec<(
+        String,
+        String,
+        String,
+        String,
+        Option<String>,
+        Option<f64>,
+        Option<f64>,
+        Option<String>,
+    )> = stmt
+        .query_map(params![request_id], |row| {
             Ok((
                 row.get(0)?,
                 row.get(1)?,
@@ -220,7 +229,17 @@ pub fn get_request_results(conn: &Connection, request_id: &str) -> Result<Reques
 
     let mut results = Vec::new();
 
-    for (item_id, inv_id, test_code, test_name, unit, _critical_low, _critical_high, category_name) in items {
+    for (
+        item_id,
+        inv_id,
+        test_code,
+        test_name,
+        unit,
+        _critical_low,
+        _critical_high,
+        category_name,
+    ) in items
+    {
         // Find reference range for this patient
         let ref_range = find_reference_range(conn, &inv_id, age_group, gender_str);
         let (ref_min, ref_max, ref_ag, ref_gen) = match ref_range {
@@ -253,7 +272,7 @@ pub fn get_request_results(conn: &Connection, request_id: &str) -> Result<Reques
                     request_item_id: item_id,
                     test_code,
                     test_name,
-                    category_name: category_name,
+                    category_name,
                     unit,
                     numeric_value: num,
                     text_value: txt,

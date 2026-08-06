@@ -1,4 +1,5 @@
 mod auth;
+mod billing;
 mod commands;
 mod db;
 mod investigations;
@@ -6,7 +7,6 @@ mod patients;
 mod profiles;
 mod requests;
 mod results;
-mod billing;
 mod seed;
 
 use rusqlite::Connection;
@@ -106,6 +106,13 @@ pub fn run() {
             commands::cmd_log_report,
             commands::cmd_get_print_data,
             commands::cmd_list_report_log,
+            commands::cmd_create_invoice,
+            commands::cmd_update_invoice_adjustments,
+            commands::cmd_get_invoice,
+            commands::cmd_get_invoice_by_request,
+            commands::cmd_list_invoices,
+            commands::cmd_record_payment,
+            commands::cmd_get_payment,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

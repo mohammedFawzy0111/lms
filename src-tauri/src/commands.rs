@@ -1,3 +1,4 @@
+use crate::billing::{self, Invoice, InvoiceDetail, NewInvoice, NewPayment, Payment};
 use crate::investigations::{
     self, Category, Investigation, NewInvestigation, NewReferenceRange, ReferenceRange,
 };
@@ -41,7 +42,7 @@ pub struct ReportLogEntry {
     pub id: String,
     pub generated_by: Option<String>,
     pub generated_by_name: Option<String>,
-    pub generated_at: String
+    pub generated_at: String,
 }
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
@@ -628,20 +629,124 @@ pub fn cmd_list_report_log(
     let mut stmt = match conn.prepare(
         "SELECT rl.id, rl.generated_by, u.full_name, rl.generated_at FROM report_log rl
         LEFT JOIN users u ON u.id = rl.generated_by
-        WHERE rl.request_id = ?1 ORDER BY rl.generated_at DESC"
+        WHERE rl.request_id = ?1 ORDER BY rl.generated_at DESC",
     ) {
         Ok(s) => s,
         Err(e) => return ApiResult::err(e.to_string()),
     };
 
-    let enteries: Vec<ReportLogEntry> = stmt.query_map(params![request_id], |row| {
-        Ok(ReportLogEntry{
-            id: row.get(0)?,
-            generated_by: row.get(1)?,
-            generated_by_name: row.get(2)?,
-            generated_at: row.get(3)?,
+    let enteries: Vec<ReportLogEntry> = stmt
+        .query_map(params![request_id], |row| {
+            Ok(ReportLogEntry {
+                id: row.get(0)?,
+                generated_by: row.get(1)?,
+                generated_by_name: row.get(2)?,
+                generated_at: row.get(3)?,
+            })
         })
-    }).map(|rows| rows.filter_map(|r| r.ok()).collect()).unwrap_or_default();
+        .map(|rows| rows.filter_map(|r| r.ok()).collect())
+        .unwrap_or_default();
 
     ApiResult::ok(enteries)
+}
+
+#[tauri::command]
+pub fn cmd_create_invoice(
+    state: State<AppState>,
+    actor_id: String,
+    invoice: NewInvoice,
+) -> ApiResult<InvoiceDetail> {
+    let conn = state.db.lock().unwrap();
+    match billing::create_invoice(&conn, invoice, &actor_id) {
+        Ok(i) => ApiResult::ok(i),
+        Err(e) => ApiResult::err(e.to_string()),
+    }
+}
+
+#[tauri::command]
+pub fn cmd_update_invoice_adjustments(
+    state: State<AppState>,
+    actor_id: String,
+    invoice_id: String,
+    discount_type: String,
+    discount_value: f64,
+    tax_percent: f64,
+    additional_fees: f64,
+) -> ApiResult<InvoiceDetail> {
+    let conn = state.db.lock().unwrap();
+    match billing::update_invoice_adjustments(
+        &conn,
+        &invoice_id,
+        &discount_type,
+        discount_value,
+        tax_percent,
+        additional_fees,
+        &actor_id,
+    ) {
+        Ok(i) => ApiResult::ok(i),
+        Err(e) => ApiResult::err(e.to_string()),
+    }
+}
+
+#[tauri::command]
+pub fn cmd_get_invoice(
+    state: State<AppState>,
+    id: String, 
+) -> ApiResult<InvoiceDetail> {
+    let conn = state.db.lock().unwrap();
+    match billing::get_invoice(&conn, &id){
+        Ok(i) => ApiResult::ok(i),
+        Err(e) => ApiResult::err(e.to_string()),
+    }
+}
+
+#[tauri::command]
+pub fn cmd_get_invoice_by_request(
+    state: State<AppState>,
+    request_id: String, 
+) -> ApiResult<Option<String>> {
+    let conn = state.db.lock().unwrap();
+    match billing::get_invoice_by_request(&conn, &request_id){
+        Ok(id) => ApiResult::ok(id),
+        Err(e) => ApiResult::err(e.to_string()),
+    }
+}
+
+#[tauri::command]
+pub fn cmd_list_invoices(
+    state: State<AppState>,
+    status: Option<String>,
+    search: Option<String>,
+    limit: Option<i64>,
+) -> ApiResult<Vec<Invoice>> {
+    let conn = state.db.lock().unwrap();
+    match billing::list_invoices(&conn, status.as_deref(), search.as_deref(), limit.unwrap_or(100)){
+        Ok(list) => ApiResult::ok(list),
+        Err(e) => ApiResult::err(e.to_string()),
+    }
+} 
+
+#[tauri::command]
+pub fn cmd_record_payment(
+    state: State<AppState>,
+    actor_id: String, 
+    payment: NewPayment,
+) -> ApiResult<Payment>{
+    let conn = state.db.lock().unwrap();
+    match billing::record_payment(&conn, payment, &actor_id){
+        Ok(p) => ApiResult::ok(p),
+        Err(e) => ApiResult::err(e.to_string()),
+    }
+}
+
+#[tauri::command]
+pub fn cmd_get_payment(
+    state: State<AppState>,
+    id: String, 
+) -> ApiResult<Payment>{
+    let conn = state.db.lock().unwrap();
+    match billing::get_payment(&conn, &id){
+        Ok(p) => ApiResult::ok(p),
+        Err(e) => ApiResult::err(e.to_string()),
+    }
 }
