@@ -6,6 +6,7 @@ mod patients;
 mod profiles;
 mod requests;
 mod results;
+mod billing;
 mod seed;
 
 use rusqlite::Connection;

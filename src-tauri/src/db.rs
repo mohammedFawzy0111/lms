@@ -63,6 +63,12 @@ pub fn open_and_migrate(path: &Path) -> Result<Connection> {
         migrate_v7(&conn)?;
         conn.execute("INSERT INTO schema_migrations (version) VALUES (7)", [])?;
     }
+    
+    if version < 8 {
+        migrate_v7(&conn)?;
+        conn.execute("INSERT INTO schema_migrations (version) VALUES (8)", [])?;
+    }
+
     Ok(conn)
 }
 
@@ -318,6 +324,61 @@ fn migrate_v7(conn: &Connection) -> Result<()> {
     conn.execute_batch("
     INSERT OR IGNORE INTO lab_settings (key, value) VALUES ('print_mode', 'full'), ('print_margin_top', '20'), ('print_margin_bottom', '20'), ('print_margin_left', '15'), ('print_margin_right', '15');
         ")?;
+    Ok(())
+}
+
+fn migrate_v8(conn: &Connection) -> Result<()> {
+    conn.execute_batch("
+        CREATE TABLE IF NOT EXISTS invoices (
+            id               TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
+            invoice_no       TEXT NOT NULL UNIQUE,
+            request_id       TEXT NOT NULL REFERENCES lab_requests(id) ON DELETE CASCADE,
+            subtotal         REAL NOT NULL DEFAULT 0,
+            discount_type    TEXT CHECK (discount_type IN ('percent','fixed')) DEFAULT 'fixed',
+            discount_value   REAL NOT NULL DEFAULT 0,
+            tax_percent      REAL NOT NULL DEFAULT 0,
+            additional_fees  REAL NOT NULL DEFAULT 0,
+            total            REAL NOT NULL DEFAULT 0,
+            amount_paid      REAL NOT NULL DEFAULT 0,
+            status           TEXT NOT NULL DEFAULT 'unpaid'
+                             CHECK (status IN ('unpaid','partial','paid','cancelled')),
+            notes            TEXT,
+            created_by       TEXT REFERENCES users(id) ON DELETE SET NULL,
+            created_at       TEXT NOT NULL DEFAULT (datetime('now')),
+            updated_at       TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_invoices_request ON invoices (request_id);
+        CREATE INDEX IF NOT EXISTS idx_invoices_status  ON invoices (status);
+        CREATE INDEX IF NOT EXISTS idx_invoices_no      ON invoices (invoice_no);
+
+        CREATE TABLE IF NOT EXISTS payments (
+            id              TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
+            invoice_id      TEXT NOT NULL REFERENCES invoices(id) ON DELETE CASCADE,
+            receipt_no      TEXT NOT NULL UNIQUE,
+            amount          REAL NOT NULL,
+            method          TEXT NOT NULL CHECK (method IN ('cash','card','bank_transfer','other')),
+            reference_note  TEXT,
+            received_by     TEXT REFERENCES users(id) ON DELETE SET NULL,
+            paid_at         TEXT NOT NULL DEFAULT (datetime('now')),
+            is_reprint_of   TEXT REFERENCES payments(id) ON DELETE SET NULL
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_payments_invoice ON payments (invoice_id);
+        CREATE INDEX IF NOT EXISTS idx_payments_receipt ON payments (receipt_no);
+
+        CREATE TABLE IF NOT EXISTS invoice_counter (
+            id    INTEGER PRIMARY KEY CHECK (id = 1),
+            value INTEGER NOT NULL DEFAULT 0
+        );
+        INSERT OR IGNORE INTO invoice_counter (id, value) VALUES (1, 0);
+
+        CREATE TABLE IF NOT EXISTS receipt_counter (
+            id    INTEGER PRIMARY KEY CHECK (id = 1),
+            value INTEGER NOT NULL DEFAULT 0
+        );
+        INSERT OR IGNORE INTO receipt_counter (id, value) VALUES (1, 0);
+    ")?;
     Ok(())
 }
 
