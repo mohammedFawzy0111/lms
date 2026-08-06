@@ -45,6 +45,42 @@ pub struct ReportLogEntry {
     pub generated_at: String,
 }
 
+#[derive(Debug, Serialize)]
+pub struct DashboardStats {
+    pub today_patients: i64,
+    pub today_revenue: f64,
+    pub pending_investigation: i64,
+    pub completed_today: i64,
+    pub monthly_patients: i64,
+    pub monthly_revenue: f64,
+}
+
+#[derive(Debug, Serialize)]
+pub struct RecentActivityEntry {
+    pub action: String,
+    pub entity_type: Option<String>,
+    pub username: Option<String>,
+    pub created_at: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct PendingResultEntry {
+    pub request_id: String,
+    pub request_no: String,
+    pub patient_name: String,
+    pub test_name: String,
+    pub priority: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct SearchResult {
+    pub kind: String, // "patient" | "investigation" | "request" | "invoice"
+    pub id: String,
+    pub title: String,
+    pub subtitle: String,
+    pub extra: Option<String>,
+}
+
 // ── Auth ──────────────────────────────────────────────────────────────────────
 
 #[tauri::command]
@@ -689,12 +725,9 @@ pub fn cmd_update_invoice_adjustments(
 }
 
 #[tauri::command]
-pub fn cmd_get_invoice(
-    state: State<AppState>,
-    id: String, 
-) -> ApiResult<InvoiceDetail> {
+pub fn cmd_get_invoice(state: State<AppState>, id: String) -> ApiResult<InvoiceDetail> {
     let conn = state.db.lock().unwrap();
-    match billing::get_invoice(&conn, &id){
+    match billing::get_invoice(&conn, &id) {
         Ok(i) => ApiResult::ok(i),
         Err(e) => ApiResult::err(e.to_string()),
     }
@@ -703,10 +736,10 @@ pub fn cmd_get_invoice(
 #[tauri::command]
 pub fn cmd_get_invoice_by_request(
     state: State<AppState>,
-    request_id: String, 
+    request_id: String,
 ) -> ApiResult<Option<String>> {
     let conn = state.db.lock().unwrap();
-    match billing::get_invoice_by_request(&conn, &request_id){
+    match billing::get_invoice_by_request(&conn, &request_id) {
         Ok(id) => ApiResult::ok(id),
         Err(e) => ApiResult::err(e.to_string()),
     }
@@ -720,33 +753,258 @@ pub fn cmd_list_invoices(
     limit: Option<i64>,
 ) -> ApiResult<Vec<Invoice>> {
     let conn = state.db.lock().unwrap();
-    match billing::list_invoices(&conn, status.as_deref(), search.as_deref(), limit.unwrap_or(100)){
+    match billing::list_invoices(&conn, status.as_deref(), search.as_deref(), limit.unwrap_or(100))
+    {
         Ok(list) => ApiResult::ok(list),
         Err(e) => ApiResult::err(e.to_string()),
     }
-} 
+}
 
 #[tauri::command]
 pub fn cmd_record_payment(
     state: State<AppState>,
-    actor_id: String, 
+    actor_id: String,
     payment: NewPayment,
-) -> ApiResult<Payment>{
+) -> ApiResult<Payment> {
     let conn = state.db.lock().unwrap();
-    match billing::record_payment(&conn, payment, &actor_id){
+    match billing::record_payment(&conn, payment, &actor_id) {
         Ok(p) => ApiResult::ok(p),
         Err(e) => ApiResult::err(e.to_string()),
     }
 }
 
 #[tauri::command]
-pub fn cmd_get_payment(
-    state: State<AppState>,
-    id: String, 
-) -> ApiResult<Payment>{
+pub fn cmd_get_payment(state: State<AppState>, id: String) -> ApiResult<Payment> {
     let conn = state.db.lock().unwrap();
-    match billing::get_payment(&conn, &id){
+    match billing::get_payment(&conn, &id) {
         Ok(p) => ApiResult::ok(p),
         Err(e) => ApiResult::err(e.to_string()),
     }
+}
+
+#[tauri::command]
+pub fn cmd_get_dashboard_stats(state: State<AppState>) -> ApiResult<DashboardStats> {
+    let conn = state.db.lock().unwrap();
+
+    let today_patients: i64 = conn
+        .query_row("SELECT COUNT(*) FROM patients WHERE date(created_at) = date('now')", [], |r| {
+            r.get(0)
+        })
+        .unwrap_or(0);
+
+    let today_revenue: f64 = conn
+        .query_row(
+            "SELECT COALESCE(SUM(amount), 0) FROM payments WHERE date(paid_at) = date('now')",
+            [],
+            |r| r.get(0),
+        )
+        .unwrap_or(0.0);
+
+    let pending_investigation : i64 = conn.query_row(
+        "SELECT COUNT(*) FROM lab_request_items WHERE status NOT IN ('completed', 'delivered', 'cancelled')", 
+        [], |r| r.get(0),
+    ).unwrap_or(0);
+
+    let completed_today: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM lab_request_items WHERE status = 'completed' AND date(created_at) = date('now')", 
+        [], |r| r.get(0),
+    ).unwrap_or(0);
+
+    let monthly_patients: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM patients WHERE strftime('%Y-%m',created_at) = strftime('%Y-%m','now')",
+        [], |r| r.get(0),
+    ).unwrap_or(0);
+
+    let monthly_revenue: f64 = conn.query_row(
+        "SELECT COALESCE(SUM(amount), 0) FROM payments WHERE strftime('%Y-%m', paid_at) = strftime('%Y-%m','now')",
+        [], |r| r.get(0),
+    ).unwrap_or(0.0);
+
+    ApiResult::ok(DashboardStats {
+        today_patients,
+        today_revenue,
+        pending_investigation,
+        completed_today,
+        monthly_patients,
+        monthly_revenue,
+    })
+}
+
+#[tauri::command]
+pub fn cmd_get_recent_activity(
+    state: State<AppState>,
+    limit: Option<i64>,
+) -> ApiResult<Vec<RecentActivityEntry>> {
+    let conn = state.db.lock().unwrap();
+    let mut stmt = match conn.prepare(
+        "SELECT a.action, a.entity_type, u.full_name, a.created_at
+        FROM audit_log a LEFT JOIN users u ON u.id = a.user_id
+        ORDER BY a.created_at DESC LIMIT ?1",
+    ) {
+        Ok(s) => s,
+        Err(e) => return ApiResult::err(e.to_string()),
+    };
+
+    let enteries: Vec<RecentActivityEntry> = stmt
+        .query_map(params![limit.unwrap_or(15)], |row| {
+            Ok(RecentActivityEntry {
+                action: row.get(0)?,
+                entity_type: row.get(1)?,
+                username: row.get(2)?,
+                created_at: row.get(3)?,
+            })
+        })
+        .map(|rows| rows.filter_map(|r| r.ok()).collect())
+        .unwrap_or_default();
+
+    ApiResult::ok(enteries)
+}
+
+#[tauri::command]
+pub fn cmd_get_pending_results(
+    state: State<AppState>,
+    limit: Option<i64>,
+) -> ApiResult<Vec<PendingResultEntry>> {
+    let conn = state.db.lock().unwrap();
+    let mut stmt = match conn.prepare(
+        "SELECT r.id, r.request_no, p.full_name, i.test_name, r.priority
+        FROM lab_request_items ri 
+        JOIN lab_requests r ON r.id = ri.request_id
+        JOIN patients p ON p.id = r.patient_id
+        JOIN investigations i ON i.id = ri.investigation_id
+        WHERE ri.status NOT IN ('completed', 'delivered', 'cancelled')
+        ORDER BY CASE r.priority WHEN 'urgent' THEN 0 ELSE 1 END, r.request_date ASC 
+        LIMIT ?1",
+    ) {
+        Ok(s) => s,
+        Err(e) => return ApiResult::err(e.to_string()),
+    };
+
+    let enteries: Vec<PendingResultEntry> = stmt
+        .query_map(params![limit.unwrap_or(10)], |row| {
+            Ok(PendingResultEntry {
+                request_id: row.get(0)?,
+                request_no: row.get(1)?,
+                patient_name: row.get(2)?,
+                test_name: row.get(3)?,
+                priority: row.get(4)?,
+            })
+        })
+        .map(|rows| rows.filter_map(|r| r.ok()).collect())
+        .unwrap_or_default();
+
+    ApiResult::ok(enteries)
+}
+
+#[tauri::command]
+pub fn cmd_global_search(state: State<AppState>, query: String) -> ApiResult<Vec<SearchResult>> {
+    let conn = state.db.lock().unwrap();
+    let q = query.trim();
+    if q.is_empty() {
+        return ApiResult::ok(vec![]);
+    }
+    let pattern = format!("%{}%", q);
+    let mut results = Vec::new();
+
+    //patients
+    if let Ok(mut stmt) = conn.prepare(
+        "SELECT id, full_name, patient_no, phone From patients
+        WHERE full_name LIKE ?1 COLLATE NOCASE OR patient_no LIKe ?1 OR phone LIKE ?1
+        LIMIT 8",
+    ) {
+        if let Ok(rows) = stmt.query_map(params![pattern], |row| {
+            Ok(SearchResult {
+                kind: "patient".to_string(),
+                id: row.get(0)?,
+                title: row.get(1)?,
+                subtitle: row.get(2)?,
+                extra: row.get(3)?,
+            })
+        }) {
+            results.extend(rows.filter_map(|r| r.ok()));
+        }
+    }
+
+    //investigations
+    if let Ok(mut stmt) = conn.prepare(
+        "SELECT id, test_name, test_code From investigations 
+        WHERE test_name LIKE ?1 COLLATE NOCASE OR test_code LIKe ?1 COLLATE NOCASE
+        LIMIT 8",
+    ) {
+        if let Ok(rows) = stmt.query_map(params![pattern], |row| {
+            Ok(SearchResult {
+                kind: "investigation".to_string(),
+                id: row.get(0)?,
+                title: row.get(1)?,
+                subtitle: row.get(2)?,
+                extra: None,
+            })
+        }) {
+            results.extend(rows.filter_map(|r| r.ok()));
+        }
+    }
+
+    //Requests
+    if let Ok(mut stmt) = conn.prepare(
+        "SELECT r.id, r.request_no, p.full_name, r.status From lab_requests r 
+        JOIN patients p ON p.id = r.patient_id
+        WHERE r.request_no LIKE ?1 OR p.full_name LIKe ?1 COLLATE NOCASE 
+        LIMIT 8",
+    ) {
+        if let Ok(rows) = stmt.query_map(params![pattern], |row| {
+            Ok(SearchResult {
+                kind: "request".to_string(),
+                id: row.get(0)?,
+                title: row.get(1)?,
+                subtitle: row.get(2)?,
+                extra: row.get(3)?,
+            })
+        }) {
+            results.extend(rows.filter_map(|r| r.ok()));
+        }
+    }
+
+    // Invoice | Receipt
+    if let Ok(mut stmt) = conn.prepare(
+        "SELECT inv.id, inv.invoice_no, p.full_name, inv.status From invoices inv 
+        JOIN lab_requests r ON r.id = inv.request_id
+        JOIN patients p ON p.id = r.patient_id
+        WHERE inv.invoice_no LIKE ?1 OR p.full_name LIKe ?1 COLLATE NOCASE 
+        LIMIT 8",
+    ) {
+        if let Ok(rows) = stmt.query_map(params![pattern], |row| {
+            Ok(SearchResult {
+                kind: "invoice".to_string(),
+                id: row.get(0)?,
+                title: row.get(1)?,
+                subtitle: row.get(2)?,
+                extra: row.get(3)?,
+            })
+        }) {
+            results.extend(rows.filter_map(|r| r.ok()));
+        }
+    }
+
+    // Receitp numbers directly
+    if let Ok(mut stmt) = conn.prepare(
+        "SELECT pay.id, pay.receipt_no, p.full_name, inv.id From  payments pay
+        JOIN invoices inv ON inv.id = pay.invoice_id
+        JOIN lab_requests r ON r.id = inv.request_id
+        JOIN patients p ON p.id = r.patient_id
+        WHERE pay.receipt_no LIKE ?1 
+        LIMIT 5",
+    ) {
+        if let Ok(rows) = stmt.query_map(params![pattern], |row| {
+            Ok(SearchResult {
+                kind: "receipt".to_string(),
+                id: row.get(0)?,
+                title: row.get(1)?,
+                subtitle: row.get(2)?,
+                extra: row.get(3)?,
+            })
+        }) {
+            results.extend(rows.filter_map(|r| r.ok()));
+        }
+    }
+    ApiResult::ok(results)
 }

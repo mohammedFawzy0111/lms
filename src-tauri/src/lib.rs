@@ -113,6 +113,10 @@ pub fn run() {
             commands::cmd_list_invoices,
             commands::cmd_record_payment,
             commands::cmd_get_payment,
+            commands::cmd_get_dashboard_stats,
+            commands::cmd_get_recent_activity,
+            commands::cmd_get_pending_results,
+            commands::cmd_global_search,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
