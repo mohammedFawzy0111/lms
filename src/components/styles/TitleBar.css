@@ -1,3 +1,81 @@
+.titlebar__search {
+  position:    relative;
+  flex:        1;
+  max-width:   380px;
+  margin:      0 var(--sp-4);
+  -webkit-app-region: no-drag;
+}
+
+.titlebar__search-icon {
+  position:   absolute;
+  left:       10px;
+  top:        50%;
+  transform:  translateY(-50%);
+  color:      var(--text-muted);
+  pointer-events: none;
+}
+
+.titlebar__search-input {
+  width:         100%;
+  height:        26px;
+  padding:       0 var(--sp-3) 0 28px;
+  font-size:     12px;
+  font-family:   var(--font-sans);
+  background:    var(--bg-elevated);
+  border:        1px solid var(--border);
+  border-radius: var(--r-full);
+  color:         var(--text-primary);
+  outline:       none;
+  transition:    border-color var(--t-fast), background var(--t-normal);
+}
+.titlebar__search-input::placeholder { color: var(--text-muted); }
+.titlebar__search-input:focus { border-color: var(--accent); }
+
+.titlebar__search-results {
+  position:      absolute;
+  top:           32px;
+  left:          0;
+  right:         0;
+  background:    var(--bg-surface);
+  border:        1px solid var(--border-strong);
+  border-radius: var(--r-md);
+  box-shadow:    var(--shadow-lg);
+  max-height:    360px;
+  overflow-y:    auto;
+  z-index:       200;
+}
+
+.search-result-item {
+  display:     flex;
+  align-items: center;
+  gap:         var(--sp-3);
+  padding:     var(--sp-2) var(--sp-3);
+  cursor:      pointer;
+  transition:  background var(--t-fast);
+}
+.search-result-item:hover { background: var(--bg-hover); }
+
+.search-result-item__kind {
+  font-size:     9px;
+  font-weight:   700;
+  text-transform: uppercase;
+  color:         var(--accent);
+  background:    var(--accent-dim);
+  padding:       2px 6px;
+  border-radius: var(--r-sm);
+  flex-shrink:   0;
+}
+
+.search-result-item__body { display: flex; flex-direction: column; overflow: hidden; }
+.search-result-item__title { font-size: 12.5px; color: var(--text-primary); font-weight: 500; }
+.search-result-item__subtitle { font-size: 11px; color: var(--text-muted); }
+
+.search-result-empty {
+  padding:    var(--sp-4);
+  text-align: center;
+  font-size:  12px;
+  color:      var(--text-muted);
+}
 .titlebar {
   height:          36px;
   min-height:      36px;

@@ -4,8 +4,8 @@ import { invoke } from "@tauri-apps/api/core";
 import { useAuthStore } from "../stores/authStore";
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 import "./styles/Billing.css";
-import "./Dashboard.css";
-import "./Patients.css";
+import "./styles/Dashboard.css";
+import "./styles/Patients.css";
 
 interface Invoice {
   id: string; invoice_no: string; request_id: string; request_no: string;
