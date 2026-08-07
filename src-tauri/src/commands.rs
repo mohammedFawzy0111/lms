@@ -1,3 +1,4 @@
+use crate::backup;
 use crate::billing::{self, Invoice, InvoiceDetail, NewInvoice, NewPayment, Payment};
 use crate::investigations::{
     self, Category, Investigation, NewInvestigation, NewReferenceRange, ReferenceRange,
@@ -9,6 +10,8 @@ use crate::results::{self, RequestResultsView, SaveResult};
 use crate::{auth, AppState};
 use rusqlite::params;
 use serde::{Deserialize, Serialize};
+use std::path::PathBuf;
+use tauri::Manager;
 use tauri::State;
 
 #[derive(Serialize)]
@@ -29,6 +32,13 @@ impl<T: Serialize> ApiResult<T> {
             error: Some(msg.into()),
         }
     }
+}
+
+#[derive(Debug, Serialize)]
+pub struct BackupFileInfo {
+    pub filename: String,
+    pub path: String,
+    pub size: u64,
 }
 
 #[derive(Debug, Serialize)]
@@ -151,6 +161,78 @@ pub fn cmd_set_setting(state: State<AppState>, key: String, value: String) -> Ap
          ON CONFLICT(key) DO UPDATE SET value = ?2, updated_at = datetime('now')",
         params![key, value],
     ) {
+        Ok(_) => ApiResult::ok(true),
+        Err(e) => ApiResult::err(e.to_string()),
+    }
+}
+
+#[tauri::command]
+pub fn cmd_backup_now(
+    app: tauri::AppHandle,
+    state: State<AppState>,
+    dest_dir: String,
+) -> ApiResult<String> {
+    let conn = state.db.lock().unwrap();
+    let filename = backup::generate_backup_filename();
+    let dest_path = PathBuf::from(&dest_dir).join(&filename);
+
+    match std::fs::create_dir_all(&dest_dir) {
+        Ok(_) => {},
+        Err(e) => return ApiResult::err(format!("Cannot create backup directory: {}", e)),
+    }
+
+    match backup::backup_to_file(&conn, &dest_path) {
+        Ok(_) => {
+            // update last backup timestamp in settings
+            let _ = conn.execute(
+                "INSERT INTO lab_settings (key, value, updated_at)
+                VALUES ('last_backup_at', datetime('now'), datetime('now'))
+                ON CONFLICT (key) DO UPDATE SET value = datetime('now'), updated_at = datetime('now')",
+                []
+            );
+
+            let _ = app; // reserved for future notification use
+            ApiResult::ok(dest_path.to_string_lossy().to_string())
+        },
+        Err(e) => ApiResult::err(e.to_string()),
+    }
+}
+
+#[tauri::command]
+pub fn cmd_list_backups(dir: String) -> ApiResult<Vec<BackupFileInfo>> {
+    let path = PathBuf::from(&dir);
+    match backup::list_backups(&path) {
+        Ok(list) => {
+            let infos: Vec<BackupFileInfo> = list
+                .into_iter()
+                .map(|(filename, path, size)| BackupFileInfo { filename, path, size })
+                .collect();
+            ApiResult::ok(infos)
+        },
+        Err(e) => ApiResult::err(e.to_string()),
+    }
+}
+
+#[tauri::command]
+pub fn cmd_verify_backup(path: String) -> ApiResult<bool> {
+    match backup::verify_backup(&PathBuf::from(path)) {
+        Ok(valid) => ApiResult::ok(valid),
+        Err(e) => ApiResult::err(e.to_string()),
+    }
+}
+
+#[tauri::command]
+pub fn cmd_restore_backup(app: tauri::AppHandle, backup_path: String) -> ApiResult<bool> {
+    let data_dir = match app.path().app_data_dir() {
+        Ok(d) => d,
+        Err(e) => return ApiResult::err(e.to_string()),
+    };
+
+    let live_db_path = data_dir.join("lms.db");
+    let safety_copy_path =
+        data_dir.join(format!("lms-pre-restor-{}", chrono::Local::now().format("%Y%m%d-%H%M%S")));
+
+    match backup::restore_from_file(&PathBuf::from(backup_path), &live_db_path, &safety_copy_path) {
         Ok(_) => ApiResult::ok(true),
         Err(e) => ApiResult::err(e.to_string()),
     }
