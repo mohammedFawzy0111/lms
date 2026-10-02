@@ -15,6 +15,9 @@ export interface LabSettings {
   theme: string;
   currency: string;
   date_format: string;
+  backup_dir: string;
+  backup_auto: string;
+  backup_interval: string;
 }
 
 interface SettingsState {

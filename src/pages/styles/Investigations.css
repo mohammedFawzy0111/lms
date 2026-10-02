@@ -67,35 +67,6 @@
   font-size: 12px;
 }
 
-
-.view-tabs {
-  display: flex;
-  gap: var(--sp-1);
-  border-bottom: 1px solid var(--border);
-  flex-shrink: 0;
-}
-
-.view-tab {
-  padding: var(--sp-3) var(--sp-2);
-  background: none;
-  border: none;
-  border-bottom: 2px solid transparent;
-  color: var(--text-secondary);
-  font-family: var(--font-sans);
-  font-size: 13px;
-  cursor: pointer;
-  transition: color var(--t-fast), border-color var(--t-fast);
-}
-
-.view-tab:hover {
-  color: var(--text-primary);
-}
-
-.view-tab--active {
-  color: var(--accent);
-  border-color: var(--accent);
-}
-
 .badge-count {
   font-size: 11px;
   padding: 2px 8px;

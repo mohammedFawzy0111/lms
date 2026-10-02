@@ -77,22 +77,12 @@ pub fn list_backups(dir: &Path) -> Result<Vec<(String, String, u64)>> {
         let path = entry.path();
         if path.extension().and_then(|e| e.to_str()) == Some("db") {
             let metadata = entry.metadata()?;
-            let modified = metadata
-                .modified()
-                .ok()
-                .and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok())
-                .map(|d| d.as_secs())
-                .unwrap_or(0);
             let filename = path.file_name().unwrap().to_string_lossy().to_string();
-            backups.push((
-                filename,
-                path.to_string_lossy().to_string(),
-                metadata.len().max(modified),
-            ));
+            backups.push((filename, path.to_string_lossy().to_string(), metadata.len()));
         }
-    }
+}
 
-    // Sort by modified time (embedded in the timestamped filename, so string sort works too)
+    // Sort newest first by filename (timestamp is embedded in the name , so string sort works)
     backups.sort_by(|a, b| b.0.cmp(&a.0));
     Ok(backups)
 }
