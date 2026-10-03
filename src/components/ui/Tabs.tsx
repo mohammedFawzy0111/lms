@@ -7,12 +7,12 @@ export interface TabProps {
   onActive?: () => void;
 }
 
-export interface TabsProps {
-  children: ReactNode;
-}
-
 export function Tab({ element }: TabProps) {
   return <>{element}</>;
+}
+
+export interface TabsProps {
+  children: ReactElement<TabProps>[];
 }
 
 export function Tabs({ children }: TabsProps) {

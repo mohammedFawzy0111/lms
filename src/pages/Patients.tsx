@@ -3,6 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { useAuthStore } from "../stores/authStore";
 import "./styles/Dashboard.css";
 import "./styles/Patients.css";
+import { Page } from "../components/ui/Page";
 
 interface Patient {
   id: string;
@@ -102,16 +103,14 @@ export default function Patients() {
   }
 
   return (
-    <div className="page">
-      <header className="page-header">
-        <div>
-          <h1 className="page-title">Patients</h1>
-          <p className="page-sub">{patients.length} patient{patients.length !== 1 ? "s" : ""}</p>
-        </div>
+    <Page 
+    title="Patients"
+    subtitle={`${patients.length} patient${patients.length !== 1 ? "s" : ""}`}
+    actionBtn={
         <button className="save-btn" onClick={() => setShowForm("new")}>
           + New Patient
         </button>
-      </header>
+    }>
 
       <input
         className="field__input patients-search"
@@ -181,7 +180,7 @@ export default function Patients() {
       {detailPatient && (
         <PatientDetailModal patient={detailPatient} onClose={() => setDetailPatient(null)} />
       )}
-    </div>
+    </Page>
   );
 }
 

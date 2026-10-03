@@ -6,6 +6,7 @@ import { useAuthStore } from "../stores/authStore";
 import "./styles/Dashboard.css";
 import "./styles/Patients.css";
 import "./styles/Requests.css";
+import { Page } from "../components/ui/Page";
 
 interface LabRequest {
   id: string;
@@ -143,17 +144,14 @@ export default function Requests() {
   }, [statusFilter, query, load]);
 
   return (
-    <div className="page">
-      <header className="page-header">
-        <div>
-          <h1 className="page-title">Lab Requests</h1>
-          <p className="page-sub">{requests.length} request{requests.length !== 1 ? "s" : ""}</p>
-        </div>
-        {selectedIds.size > 0 && (
+    <Page
+    title="Lab Requests"
+    subtitle={`${requests.length} request${requests.length !== 1 ? "s" : ""}`}
+    actionBtn={<>{selectedIds.size > 0 && (
           <button className="action-btn" onClick={printSelected}>Print Selected({selectedIds.size})</button>
         )}
-        <button className="save-btn" onClick={() => setShowNew(true)}>+ New Request</button>
-      </header>
+        <button className="save-btn" onClick={() => setShowNew(true)}>+ New Request</button></>
+    }>
 
       <div className="inv-toolbar">
         <div className="cat-tabs">
@@ -245,7 +243,7 @@ export default function Requests() {
           onPrint={openPrint}
         />
       )}
-    </div>
+    </Page>
   );
 }
 

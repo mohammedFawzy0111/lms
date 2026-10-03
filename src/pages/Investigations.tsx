@@ -4,6 +4,7 @@ import { useAuthStore } from "../stores/authStore";
 import "./styles/Dashboard.css";
 import "./styles/Investigations.css";
 import { Tabs, Tab } from "../components/ui/Tabs";
+import { Page } from "../components/ui/Page";
 
 interface Category {
   id: string;
@@ -131,11 +132,9 @@ export default function Investigations() {
   }, [loadCategories]);
 
   return (
-    <div className="page">
-      <header className="page-header">
-        <div>
-          <h1 className="page-title">Investigations</h1>
-        </div>
+    <Page
+      title="Investigation"
+      actionBtn={
         <button
           className="save-btn"
           onClick={() =>
@@ -144,8 +143,8 @@ export default function Investigations() {
         >
           {view === "tests" ? "+ New Test" : "+ New Profile"}
         </button>
-      </header>
-
+      }
+    >
       <Tabs>
         <Tab
           title="Individual Tests"
@@ -196,7 +195,7 @@ export default function Investigations() {
           onClose={() => setRangesFor(null)}
         />
       )}
-    </div>
+    </Page>
   );
 }
 

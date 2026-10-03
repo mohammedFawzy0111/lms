@@ -4,6 +4,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { Activity, Clock, AlertCircle } from "lucide-react";
 import { useAuthStore } from "../stores/authStore";
 import "./styles/Dashboard.css";
+import { Page } from "../components/ui/Page";
 
 interface DashboardStats {
   today_patients:         number;
@@ -72,16 +73,14 @@ export default function Dashboard() {
   ];
 
   return (
-    <div className="page">
-      <header className="page-header">
-        <div>
-          <h1 className="page-title">Dashboard</h1>
-          <p className="page-sub">Welcome back, {user?.full_name ?? "User"}</p>
-        </div>
-        <span className="page-date">
-          {new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
-        </span>
-      </header>
+    <Page
+    title="Dashboard"
+    subtitle={`Welcome back, ${user?.full_name ?? "User"}`}
+    actionBtn={
+      <span className="page-date">
+      {new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
+      </span>
+    }>
 
       <section className="dashboard-stats">
         {STATS.map((stat) => (
@@ -154,7 +153,7 @@ export default function Dashboard() {
           </div>
         </div>
       </section>
-    </div>
+    </Page>
   );
 }
 

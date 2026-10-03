@@ -6,6 +6,7 @@ import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 import "./styles/Billing.css";
 import "./styles/Dashboard.css";
 import "./styles/Patients.css";
+import { Page } from "../components/ui/Page";
 
 interface Invoice {
   id: string; invoice_no: string; request_id: string; request_no: string;
@@ -86,13 +87,10 @@ export default function Billing() {
   }, [searchParams, currentUser]);
 
   return (
-    <div className="page">
-      <header className="page-header">
-        <div>
-          <h1 className="page-title">Billing</h1>
-          <p className="page-sub">{invoices.length} invoice{invoices.length !== 1 ? "s" : ""}</p>
-        </div>
-      </header>
+    <Page 
+    title="Billing"
+    subtitle={`${invoices.length} invoice${invoices.length !== 1 ? "s" : ""}`}
+    >
 
       <div className="inv-toolbar">
         <div className="cat-tabs">
@@ -153,7 +151,7 @@ export default function Billing() {
           onChanged={() => load(statusFilter, query)}
         />
       )}
-    </div>
+      </Page>
   );
 }
 
