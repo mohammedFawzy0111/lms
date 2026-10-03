@@ -4,8 +4,6 @@ import { invoke } from "@tauri-apps/api/core";
 import { useAuthStore } from "../stores/authStore";
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 import "./styles/Billing.css";
-import "./styles/Dashboard.css";
-import "./styles/Patients.css";
 import { Page } from "../components/ui/Page";
 import { CatTabs } from "../components/ui/CatTabs";
 
@@ -142,21 +140,21 @@ export default function Billing() {
       title="Billing"
       subtitle={`${invoices.length} invoice${invoices.length !== 1 ? "s" : ""}`}
     >
-      <div className="inv-toolbar">
+      <div className="toolbar">
         <CatTabs
           categories={STATUSES}
           categoriesLabels={STATUS_LABELS}
           onSelect={setStatusFilter}
         />
         <input
-          className="field__input inv-search"
+          className="field__input search"
           placeholder="Search patient, invoice #..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
       </div>
 
-      {error && <div className="users-error">{error}</div>}
+      {error && <div className="error">{error}</div>}
 
       <div className="users-table-wrap">
         {loading ? (

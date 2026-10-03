@@ -5,16 +5,6 @@
   font-size: 13px;
 }
 
-.users-error {
-  padding: var(--sp-3) var(--sp-4);
-  background: var(--danger-dim);
-  border: 1px solid var(--danger);
-  border-radius: var(--r-md);
-  color: var(--danger);
-  font-size: 12px;
-  flex-shrink: 0;
-}
-
 /* Table */
 .users-table {
   width: 100%;
@@ -31,7 +21,9 @@
   letter-spacing: 0.06em;
   border-bottom: 1px solid var(--border);
   white-space: nowrap;
-  transition: color var(--t-normal), border-color var(--t-normal);
+  transition:
+    color var(--t-normal),
+    border-color var(--t-normal);
 }
 
 .users-table td {
@@ -39,7 +31,9 @@
   font-size: 13px;
   color: var(--text-primary);
   border-bottom: 1px solid var(--border);
-  transition: color var(--t-normal), border-color var(--t-normal);
+  transition:
+    color var(--t-normal),
+    border-color var(--t-normal);
 }
 
 .users-table tr:last-child td {

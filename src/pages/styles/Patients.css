@@ -1,8 +1,3 @@
-.patients-search {
-  flex-shrink: 0;
-  max-width: 360px;
-}
-
 .modal--wide {
   width: 640px;
 }
@@ -63,7 +58,9 @@
   font-family: var(--font-sans);
   font-size: 13px;
   cursor: pointer;
-  transition: color var(--t-fast), border-color var(--t-fast);
+  transition:
+    color var(--t-fast),
+    border-color var(--t-fast);
 }
 
 .detail-tab:hover {

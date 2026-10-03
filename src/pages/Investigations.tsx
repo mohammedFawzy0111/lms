@@ -175,7 +175,7 @@ export default function Investigations() {
         />
       </Tabs>
 
-      {error && <div className="users-error">{error}</div>}
+      {error && <div className="error">{error}</div>}
 
       {showForm && (
         <InvestigationFormModal
@@ -261,7 +261,7 @@ function IndividualTests({
 
   return (
     <>
-      <div className="inv-toolbar">
+      <div className="toolbar">
         <CatTabs
           categories={categories.map((c) => c.id)}
           categoriesLabels={Object.fromEntries(
@@ -270,7 +270,7 @@ function IndividualTests({
           onSelect={setActiveCat}
         />
         <input
-          className="field__input inv-search"
+          className="field__input search"
           placeholder="Search test name or code..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
@@ -437,7 +437,7 @@ function InvestigationFormModal({
         </div>
         <div className="modal__body">
           {error && (
-            <div className="users-error" style={{ marginBottom: 12 }}>
+            <div className="error" style={{ marginBottom: 12 }}>
               {error}
             </div>
           )}
@@ -672,7 +672,7 @@ function ReferenceRangesModal({
         </div>
         <div className="modal__body">
           {error && (
-            <div className="users-error" style={{ marginBottom: 12 }}>
+            <div className="error" style={{ marginBottom: 12 }}>
               {error}
             </div>
           )}
@@ -850,7 +850,7 @@ function ProfilesView({
 
   return (
     <>
-      {error && <div className="users-error">{error}</div>}
+      {error && <div className="error">{error}</div>}
       <div className="users-table-wrap">
         {loading ? (
           <div className="users-loading">Loading...</div>

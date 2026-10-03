@@ -192,14 +192,14 @@ export default function Requests() {
         </>
       }
     >
-      <div className="inv-toolbar">
+      <div className="toolbar">
         <CatTabs
           categories={STATUSES}
           categoriesLabels={STATUS_LABELS}
           onSelect={setStatusFilter}
         />
         <input
-          className="field__input inv-search"
+          className="field__input search"
           placeholder="Search patient, request #..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}

@@ -1,38 +1,53 @@
-
 .dashboard-month-strip {
-  display:       flex;
-  gap:           var(--sp-3);
-  align-items:   center;
-  font-size:     12px;
-  color:         var(--text-secondary);
-  flex-shrink:   0;
+  display: flex;
+  gap: var(--sp-3);
+  align-items: center;
+  font-size: 12px;
+  color: var(--text-secondary);
+  flex-shrink: 0;
 }
-.dashboard-month-strip strong { color: var(--text-primary); }
+.dashboard-month-strip strong {
+  color: var(--text-primary);
+}
 
 .dashboard-list {
-  flex:       1;
+  flex: 1;
   overflow-y: auto;
   min-height: 0;
-  display:    flex;
+  display: flex;
   flex-direction: column;
 }
 
 .activity-row {
-  display:         flex;
-  align-items:     center;
+  display: flex;
+  align-items: center;
   justify-content: space-between;
-  padding:         var(--sp-2) var(--sp-1);
-  border-bottom:   1px solid var(--border);
-  font-size:       12.5px;
-  gap:             var(--sp-3);
+  padding: var(--sp-2) var(--sp-1);
+  border-bottom: 1px solid var(--border);
+  font-size: 12.5px;
+  gap: var(--sp-3);
 }
-.activity-row:last-child { border-bottom: none; }
-.activity-row--clickable { cursor: pointer; transition: background var(--t-fast); border-radius: var(--r-sm); }
-.activity-row--clickable:hover { background: var(--bg-hover); }
+.activity-row:last-child {
+  border-bottom: none;
+}
+.activity-row--clickable {
+  cursor: pointer;
+  transition: background var(--t-fast);
+  border-radius: var(--r-sm);
+}
+.activity-row--clickable:hover {
+  background: var(--bg-hover);
+}
 
-.activity-row__text { color: var(--text-primary); flex: 1; }
-.activity-row__time { color: var(--text-muted); font-size: 11px; white-space: nowrap; }
-
+.activity-row__text {
+  color: var(--text-primary);
+  flex: 1;
+}
+.activity-row__time {
+  color: var(--text-muted);
+  font-size: 11px;
+  white-space: nowrap;
+}
 
 .users-table-wrap {
   flex: 1;
@@ -60,7 +75,9 @@
   display: flex;
   flex-direction: column;
   gap: var(--sp-1);
-  transition: background var(--t-normal), border-color var(--t-normal);
+  transition:
+    background var(--t-normal),
+    border-color var(--t-normal);
 }
 
 .stat-card__value {
@@ -103,43 +120,7 @@
   border-radius: var(--r-lg);
 }
 
-
 /* Select */
-
-select.field__input {
-  /* Reset default browser styling */
-  appearance: none;
-
-  /* Custom SVG background arrow (Fully URL-encoded for cross-browser safety) */
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://w3.org' width='12' height='12' viewBox='0 0 16 16'%3E%3Cpath fill='%2323848d' d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: calc(100% - 12px) center;
-  background-size: 12px;
-
-  /* Modern, clean layout styles */
-  width: 100%;
-  padding: 10px 36px 10px 12px;
-  /* Right padding keeps text clear of the icon */
-  font-size: 14px;
-  color: var(--text-muted, #333);
-  background-color: var(--bg-surface);
-  border: 1px solid var(--border, #ccc);
-  border-radius: var(--r-lg, 6px);
-  cursor: pointer;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-/* Smooth focus state for better UX */
-select.field__input:focus {
-  outline: none;
-  border-color: #23848d;
-  box-shadow: 0 0 0 3px rgba(35, 132, 141, 0.15);
-}
-
-select.field__input option {
-  background-color: var(--bg-surface);
-  color: var(--text-secondary);
-}
 
 .modal-backdrop {
   position: fixed;
@@ -163,7 +144,9 @@ select.field__input option {
   flex-direction: column;
   box-shadow: var(--shadow-lg);
   animation: fadeIn 150ms ease;
-  transition: background var(--t-normal), border-color var(--t-normal);
+  transition:
+    background var(--t-normal),
+    border-color var(--t-normal);
 }
 
 .modal__header {
@@ -172,7 +155,9 @@ select.field__input option {
   font-size: 15px;
   font-weight: 600;
   color: var(--text-primary);
-  transition: color var(--t-normal), border-color var(--t-normal);
+  transition:
+    color var(--t-normal),
+    border-color var(--t-normal);
 }
 
 .modal__body {
