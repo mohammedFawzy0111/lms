@@ -5,6 +5,7 @@ import "./styles/Dashboard.css";
 import "./styles/Investigations.css";
 import { Tabs, Tab } from "../components/ui/Tabs";
 import { Page } from "../components/ui/Page";
+import { CatTabs } from "../components/ui/CatTabs";
 
 interface Category {
   id: string;
@@ -261,23 +262,13 @@ function IndividualTests({
   return (
     <>
       <div className="inv-toolbar">
-        <div className="cat-tabs">
-          <button
-            className={`cat-tab ${activeCat === null ? "cat-tab--active" : ""}`}
-            onClick={() => setActiveCat(null)}
-          >
-            All
-          </button>
-          {categories.map((c) => (
-            <button
-              key={c.id}
-              className={`cat-tab ${activeCat === c.id ? "cat-tab--active" : ""}`}
-              onClick={() => setActiveCat(c.id)}
-            >
-              {c.name}
-            </button>
-          ))}
-        </div>
+        <CatTabs
+          categories={categories.map((c) => c.id)}
+          categoriesLabels={Object.fromEntries(
+            categories.map((c) => [c.id, c.name]),
+          )}
+          onSelect={setActiveCat}
+        />
         <input
           className="field__input inv-search"
           placeholder="Search test name or code..."
