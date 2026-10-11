@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useAuthStore, User } from "../stores/authStore";
 import { useEnterKeyNav } from "../hooks/useEnterKeyNav";
-import "./styles/Dashboard.css";
 import "./styles/Users.css";
 import { Page } from "../components/ui/Page";
+import { DataTable } from "../components/ui/CustomTable";
 
 interface ApiResult<T> {
   ok: boolean;
@@ -74,80 +74,55 @@ export default function Users() {
     >
       {error && <div className="users-error">{error}</div>}
 
-      <div className="users-table-wrap">
-        {loading ? (
-          <div className="users-loading">Loading...</div>
-        ) : (
-          <table className="users-table">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Username</th>
-                <th>Role</th>
-                <th>Status</th>
-                <th>Created</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((u) => (
-                <tr key={u.id}>
-                  <td>
-                    <div className="user-cell">
-                      <div className="user-Avatar">
-                        {u.full_name.charAt(0).toUpperCase()}
-                      </div>
-                      <span>{u.full_name}</span>
-                    </div>
-                  </td>
-                  <td>
-                    <span className="font-mono" style={{ fontSize: 12 }}>
-                      {u.username}
-                    </span>
-                  </td>
-                  <td>
-                    <span
-                      className="role-badge"
-                      style={{ color: ROLE_COLOR[u.role as Role] }}
-                    >
-                      {u.role}
-                    </span>
-                  </td>
-                  <td>
-                    <span
-                      className={`status-badge status-badge--${u.is_active ? "activ" : "inactive"}`}
-                    >
-                      {u.is_active ? "Active" : "Diabled"}
-                    </span>
-                  </td>
-                  <td style={{ color: "var(--text-mutd)", fontSize: 12 }}>
-                    {u.created_at.split(" ")[0]}
-                  </td>
-                  <td>
-                    <div className="row-actions">
-                      <button
-                        className="action-btn"
-                        onClick={() => toggleActive(u)}
-                        disabled={u.id == currentUser?.id}
-                        title={u.is_active ? "Deactivate" : "Activate"}
-                      >
-                        {u.is_active ? "Disable" : "Enable"}
-                      </button>
-                      <button
-                        className="action-btn"
-                        onClick={() => setShowChange(u)}
-                        title="Change password"
-                      >
-                        Password
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
+      <DataTable
+        rows={users}
+        columns={[
+          { key: "full_name", header: "Name", cell: (row) => <div className="user-cell">
+              <div className="user-avatar">
+                {row.full_name.charAt(0).toUpperCase()}
+              </div>
+              <span>{row.full_name}</span>
+            </div> },
+          { key: "username", header: "Username", cell: (row) => <span className="font-mono" style={{ fontSize: 12 }}>{row.username}</span> },
+          { key: "role", header: "Role", cell: (row) => <span
+            className="role-badge"
+            style={{ color: ROLE_COLOR[row.role as Role] }}
+          >
+            {row.role}
+          </span> },
+          { key: "status", header: "Status", cell: (row) => <span
+            className={`status-badge status-badge--${row.is_active ? "active" : "inactive"}`}
+          >
+            {row.is_active ? "Active" : "Inactive"}
+          </span> },
+          { key: "created_at", header: "Created", cell: (row) => <span
+            style={{ color: "var(--text-muted)", fontSize: 12 }}
+          >
+            {row.created_at.split(" ")[0]}
+          </span> },
+          { key: "actions", header: "Actions", cell: (row) => <div className="row-actions">
+              <button
+                className="action-btn"
+                onClick={() => toggleActive(row)}
+                disabled={row.id == currentUser?.id}
+                title={row.is_active ? "Deactivate" : "Activate"}
+              >
+                {row.is_active ? "Disable" : "Enable"}
+              </button>
+              <button
+                className="action-btn"
+                onClick={() => setShowChange(row)}
+                title="Change password"
+              >
+                Password
+              </button>
+            </div>
+          }
+        ]}
+        loadingState={loading}
+        getRowKey={(u) => u.id}
+        emptyState="No users found."
+      />
 
       {showCreate && (
         <CreateUserModal

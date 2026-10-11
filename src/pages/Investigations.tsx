@@ -1,11 +1,11 @@
-import { useEffect, useState, useCallback, SetStateAction } from "react";
+import "./styles/Investigations.css";
+import { CatTabs } from "../components/ui/CatTabs";
+import { DataTable } from "../components/ui/CustomTable";
+import { Page } from "../components/ui/Page";
+import { Tabs, Tab } from "../components/ui/Tabs";
 import { invoke } from "@tauri-apps/api/core";
 import { useAuthStore } from "../stores/authStore";
-import "./styles/Dashboard.css";
-import "./styles/Investigations.css";
-import { Tabs, Tab } from "../components/ui/Tabs";
-import { Page } from "../components/ui/Page";
-import { CatTabs } from "../components/ui/CatTabs";
+import { useEffect, useState, useCallback, SetStateAction } from "react";
 
 interface Category {
   id: string;
@@ -277,81 +277,69 @@ function IndividualTests({
         />
       </div>
 
-      <div className="users-table-wrap">
-        {loading ? (
-          <div className="users-loading">Loading...</div>
-        ) : items.length === 0 ? (
-          <div className="users-loading">No investigations found.</div>
-        ) : (
-          <table className="users-table">
-            <thead>
-              <tr>
-                <th>Code</th>
-                <th>Test Name</th>
-                <th>Category</th>
-                <th>Unit</th>
-                <th>Cost</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((inv) => (
-                <tr key={inv.id}>
-                  <td>
-                    <span className="font-mono" style={{ fontSize: 12 }}>
-                      {inv.test_code}
-                    </span>
-                  </td>
-                  <td>{inv.test_name}</td>
-                  <td style={{ fontSize: 12, color: "var(--text-secondary)" }}>
-                    {inv.category_name ?? "—"}
-                  </td>
-                  <td style={{ fontSize: 12, color: "var(--text-secondary)" }}>
-                    {inv.unit ?? "—"}
-                  </td>
-                  <td style={{ fontSize: 12 }}>${inv.cost.toFixed(2)}</td>
-                  <td>
-                    <span
-                      className={`status-badge status-badge--${inv.is_active ? "active" : "inactive"}`}
-                    >
-                      {inv.is_active ? "Active" : "Disabled"}
-                    </span>
-                  </td>
-                  <td>
-                    <div className="row-actions">
-                      <button
-                        className="action-btn"
-                        onClick={() => setRangesFor(inv)}
-                      >
-                        Ranges
-                      </button>
-                      <button
-                        className="action-btn"
-                        onClick={() => setShowForm(inv)}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        className="action-btn"
-                        onClick={() => toggleActive(inv)}
-                      >
-                        {inv.is_active ? "Disable" : "Enable"}
-                      </button>
-                      <button
-                        className="action-btn"
-                        onClick={() => handleDelete(inv)}
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
+      <DataTable
+        rows={items}
+        columns={[
+          { key: "test_code", header: "Code", cell: (s) => (
+            <span className="font-mono" style={{ fontSize: 12 }}>
+              {s.test_code}
+            </span>
+          )},
+          { key: "test_name", header: "Test Name" },
+          { key: "category_name", header: "Category", cell: (s) => (
+            <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>
+              {s.category_name ?? "—"}
+            </span>
+          )},
+          { key: "unit", header: "Unit", cell: (s) => (
+            <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>
+              {s.unit ?? "—"}
+            </span>
+          )},
+          { key: "cost", header: "Cost", cell: (s) => (
+            <span style={{ fontSize: 12 }}>${s.cost.toFixed(2)}</span>
+          )},
+          { key: "is_active", header: "Status", cell: (s) => (
+            <span
+              className={`status-badge status-badge--${s.is_active ? "active" : "inactive"}`}
+            >
+              {s.is_active ? "Active" : "Disabled"}
+            </span>
+          )},
+          { key: "actions", header: "Actions", cell: (s) => <div className="row-actions">
+              <button
+                className="action-btn"
+                onClick={() => setRangesFor(s)}
+              >
+                Ranges
+              </button>
+              <button
+                className="action-btn"
+                onClick={() => setShowForm(s)}
+              >
+                Edit
+              </button>
+              <button
+                className="action-btn"
+                onClick={() => toggleActive(s)}
+              >
+                {s.is_active ? "Disable" : "Enable"}
+              </button>
+              <button
+                className="action-btn"
+                onClick={() => handleDelete(s)}
+              >
+                Delete
+              </button>
+            </div>
+          }
+        ]}
+        loadingState={loading}
+        sticky={false}
+        tableClassName="table"
+        wrapperClassName="table-wrap"
+        emptyState="No investigations found."
+      />
     </>
   );
 }

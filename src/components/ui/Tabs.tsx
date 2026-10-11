@@ -36,7 +36,7 @@ export function Tabs({ children }: TabsProps) {
           </button>
         ))}
       </div>
-      <div className="tabs-content">{tabs[active]?.props.element}</div>
+      <div className="tab-content">{tabs[active]?.props.element}</div>
     </>
   );
 }

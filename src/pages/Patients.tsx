@@ -1,9 +1,9 @@
 import { useEffect, useState, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useAuthStore } from "../stores/authStore";
-import "./styles/Dashboard.css";
 import "./styles/Patients.css";
 import { Page } from "../components/ui/Page";
+import { DataTable } from "../components/ui/CustomTable";
 
 interface Patient {
   id: string;
@@ -132,81 +132,59 @@ export default function Patients() {
 
       {error && <div className="users-error">{error}</div>}
 
-      <div className="users-table-wrap">
-        {loading ? (
-          <div className="users-loading">Loading...</div>
-        ) : patients.length === 0 ? (
-          <div className="users-loading">No patients found.</div>
-        ) : (
-          <table className="users-table">
-            <thead>
-              <tr>
-                <th>Patient ID</th>
-                <th>Name</th>
-                <th>Age / Gender</th>
-                <th>Phone</th>
-                <th>Physician</th>
-                <th>Registered</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {patients.map((p) => (
-                <tr key={p.id}>
-                  <td>
-                    <span className="font-mono" style={{ fontSize: 12 }}>
-                      {p.patient_no}
-                    </span>
-                  </td>
-                  <td>
-                    <div className="user-cell">
-                      <div className="user-avatar">
-                        {p.full_name.charAt(0).toUpperCase()}
-                      </div>
-                      <span>{p.full_name}</span>
-                    </div>
-                  </td>
-                  <td style={{ fontSize: 12 }}>
-                    {calcAge(p)}
-                    {p.gender ? ` · ${p.gender}` : ""}
-                  </td>
-                  <td style={{ fontSize: 12, color: "var(--text-secondary)" }}>
-                    {p.phone || "—"}
-                  </td>
-                  <td style={{ fontSize: 12, color: "var(--text-secondary)" }}>
-                    {p.referring_physician || "—"}
-                  </td>
-                  <td style={{ fontSize: 12, color: "var(--text-muted)" }}>
-                    {p.created_at.split(" ")[0]}
-                  </td>
-                  <td>
-                    <div className="row-actions">
-                      <button
-                        className="action-btn"
-                        onClick={() => setDetailPatient(p)}
-                      >
-                        View
-                      </button>
-                      <button
-                        className="action-btn"
-                        onClick={() => setShowForm(p)}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        className="action-btn"
-                        onClick={() => handleDelete(p)}
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
+      <DataTable
+        rows={patients}
+        columns={[
+          { key: "patient_no", header: "Patient ID", cell: (row) => <span
+            className="font-mono"
+            style={{ fontSize: 12 }}
+          >
+            {row.patient_no}
+          </span> },
+          { key: "full_name", header: "Name", cell: (row) => <div className="user-cell">
+              <div className="user-avatar">
+                {row.full_name.charAt(0).toUpperCase()}
+              </div>
+              <span>{row.full_name}</span>
+            </div> },
+          { key: "age_gender", header: "Age / Gender", cell: (row) => <span
+            style={{ fontSize: 12 }}
+          >
+            {calcAge(row)}
+            {row.gender ? ` · ${row.gender}` : ""}
+          </span> },
+          { key: "phone", header: "Phone", cell: (row) => <span
+            style={{ fontSize: 12, color: "var(--text-secondary)" }}
+          >
+            {row.phone || "—"}
+          </span> },
+          { key: "referring_physician", header: "Physician", cell: (row) => <span
+            style={{ fontSize: 12, color: "var(--text-secondary)" }}
+          >
+            {row.referring_physician || "—"}
+          </span> },
+          { key: "created_at", header: "Registered", cell: (row) => <span
+            style={{ fontSize: 12, color: "var(--text-muted)" }}
+          >
+            {row.created_at.split(" ")[0]}
+          </span> },
+          { key: "actions", header: "Actions", cell: (row) => <div className="row-actions">
+              <button className="action-btn" onClick={() => setDetailPatient(row)}>
+                View
+              </button>
+              <button className="action-btn" onClick={() => setShowForm(row)}>
+                Edit
+              </button>
+              <button className="action-btn" onClick={() => handleDelete(row)}>
+                Delete
+              </button>
+            </div>
+          }
+        ]}
+        loadingState={loading}
+        getRowKey={(p) => p.id}
+        emptyState="No patients found."
+      />
 
       {showForm && (
         <PatientFormModal

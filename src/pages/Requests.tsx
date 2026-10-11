@@ -3,10 +3,9 @@ import { invoke } from "@tauri-apps/api/core";
 import { useNavigate } from "react-router-dom";
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { useAuthStore } from "../stores/authStore";
-import "./styles/Dashboard.css";
-import "./styles/Patients.css";
 import "./styles/Requests.css";
 import { Page } from "../components/ui/Page";
+import { DataTable } from "../components/ui/CustomTable";
 import { CatTabs } from "../components/ui/CatTabs";
 
 interface LabRequest {
@@ -208,127 +207,129 @@ export default function Requests() {
 
       {error && <div className="users-error">{error}</div>}
 
-      <div className="users-table-wrap">
-        {loading ? (
-          <div className="users-loading">Loading...</div>
-        ) : requests.length === 0 ? (
-          <div className="users-loading">No requests found.</div>
-        ) : (
-          <table className="users-table">
-            <thead>
-              <tr>
-                <th style={{ width: 30 }}>
-                  <input
-                    type="checkbox"
-                    checked={
-                      selectedIds.size > 0 &&
-                      selectedIds.size === requests.length
-                    }
-                    onChange={(e) =>
-                      setSelectedIds(
-                        e.target.checked
-                          ? new Set(requests.map((r) => r.id))
-                          : new Set(),
-                      )
-                    }
-                  />
-                </th>
-                <th>Request #</th>
-                <th>Patient</th>
-                <th>Tests</th>
-                <th>Priority</th>
-                <th>Status</th>
-                <th>Requested</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {requests.map((r) => (
-                <tr key={r.id}>
-                  <td>
-                    <input
-                      type="checkbox"
-                      checked={selectedIds.has(r.id)}
-                      onChange={() => toggleSelect(r.id)}
-                    />
-                  </td>
-                  <td>
-                    <span className="font-mono" style={{ fontSize: 12 }}>
-                      {r.request_no}
-                    </span>
-                  </td>
-                  <td>
-                    <div className="user-cell">
-                      <div className="user-avatar">
-                        {r.patient_name.charAt(0).toUpperCase()}
-                      </div>
-                      <div style={{ display: "flex", flexDirection: "column" }}>
-                        <span>{r.patient_name}</span>
-                        <span
-                          className="font-mono"
-                          style={{ fontSize: 11, color: "var(--text-muted)" }}
-                        >
-                          {r.patient_no}
-                        </span>
-                      </div>
-                    </div>
-                  </td>
-                  <td>
-                    <span className="badge-count">
-                      {r.item_count} test{r.item_count !== 1 ? "s" : ""}
-                    </span>
-                  </td>
-                  <td>
-                    {r.priority === "urgent" ? (
-                      <span className="status-badge status-badge--inactive">
-                        Urgent
-                      </span>
-                    ) : (
-                      <span
-                        style={{ fontSize: 12, color: "var(--text-muted)" }}
-                      >
-                        Normal
-                      </span>
-                    )}
-                  </td>
-                  <td>
-                    <span
-                      className={`status-badge status-badge--${STATUS_COLORS[r.status]}`}
-                    >
-                      {STATUS_LABELS[r.status]}
-                    </span>
-                  </td>
-                  <td style={{ fontSize: 12, color: "var(--text-muted)" }}>
-                    {r.request_date.split(" ")[0]}
-                  </td>
-                  <td>
-                    <div className="row-actions">
-                      <button
-                        className="action-btn"
-                        onClick={() => setDetailId(r.id)}
-                      >
-                        View
-                      </button>
-                      <button
-                        className="action-btn"
-                        onClick={() => navigate(`/results/${r.id}`)}
-                      >
-                        Results
-                      </button>
-                      <button
-                        className="action-btn"
-                        onClick={() => openPrint(r.id)}
-                      >
-                        Print
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
+      <DataTable
+        rows={requests}
+        loadingState={loading}
+        getRowKey={(r) => r.id}
+        rowClassName={(r) => (selectedIds.has(r.id) ? "row--selected" : undefined)}
+        emptyState="No requests found."
+        columns={[
+          {
+            key: "select",
+            className: "col-check",
+            header: (
+              <input
+                type="checkbox"
+                checked={
+                  selectedIds.size > 0 && selectedIds.size === requests.length
+                }
+                onChange={(e) =>
+                  setSelectedIds(
+                    e.target.checked
+                      ? new Set(requests.map((r) => r.id))
+                      : new Set(),
+                  )
+                }
+              />
+            ),
+            cell: (r) => (
+              <input
+                type="checkbox"
+                checked={selectedIds.has(r.id)}
+                onChange={() => toggleSelect(r.id)}
+              />
+            ),
+          },
+          {
+            key: "request_no",
+            header: "Request #",
+            cell: (r) => <span className="font-mono">{r.request_no}</span>,
+          },
+          {
+            key: "patient_name",
+            header: "Patient",
+            cell: (r) => (
+              <div className="user-cell">
+                <div className="user-avatar">
+                  {r.patient_name.charAt(0).toUpperCase()}
+                </div>
+                <div style={{ display: "flex", flexDirection: "column" }}>
+                  <span>{r.patient_name}</span>
+                  <span
+                    className="font-mono"
+                    style={{ fontSize: 11, color: "var(--text-muted)" }}
+                  >
+                    {r.patient_no}
+                  </span>
+                </div>
+              </div>
+            ),
+          },
+          {
+            key: "item_count",
+            header: "Tests",
+            cell: (r) => (
+              <span className="badge-count">
+                {r.item_count} test{r.item_count !== 1 ? "s" : ""}
+              </span>
+            ),
+          },
+          {
+            key: "priority",
+            header: "Priority",
+            cell: (r) =>
+              r.priority === "urgent" ? (
+                <span className="status-badge status-badge--inactive">
+                  Urgent
+                </span>
+              ) : (
+                <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
+                  Normal
+                </span>
+              ),
+          },
+          {
+            key: "status",
+            header: "Status",
+            cell: (r) => (
+              <span
+                className={`status-badge status-badge--${STATUS_COLORS[r.status]}`}
+              >
+                {STATUS_LABELS[r.status]}
+              </span>
+            ),
+          },
+          {
+            key: "request_date",
+            header: "Requested",
+            cell: (r) => (
+              <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
+                {r.request_date.split(" ")[0]}
+              </span>
+            ),
+          },
+          {
+            key: "actions",
+            header: "Actions",
+            cell: (r) => (
+              <div className="row-actions">
+                <button className="action-btn" onClick={() => setDetailId(r.id)}>
+                  View
+                </button>
+                <button
+                  className="action-btn"
+                  onClick={() => navigate(`/results/${r.id}`)}
+                >
+                  Results
+                </button>
+                <button className="action-btn" onClick={() => openPrint(r.id)}>
+                  Print
+                </button>
+              </div>
+            ),
+          },
+        ]}
+      />
 
       {showNew && (
         <NewRequestModal

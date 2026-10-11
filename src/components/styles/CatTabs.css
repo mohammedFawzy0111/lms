@@ -1,29 +1,67 @@
+/* Single row, scrolls sideways when there are too many tabs.
+   The padding + negative margin pair gives the edge fade room to sit
+   outside the first/last tab, so nothing is faded when scrolled to an end. */
 .cat-tabs {
   display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
   gap: var(--sp-2);
-  flex-wrap: wrap;
+  flex-shrink: 0;
+  min-width: 0;
+  margin-inline: calc(-1 * var(--sp-4));
+  padding: var(--sp-1) var(--sp-4);
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 var(--sp-4),
+    #000 calc(100% - var(--sp-4)),
+    transparent
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 var(--sp-4),
+    #000 calc(100% - var(--sp-4)),
+    transparent
+  );
+}
+
+.cat-tabs::-webkit-scrollbar {
+  display: none;
 }
 
 .cat-tab {
-  padding: 6px 14px;
+  flex: 0 0 auto;
+  height: 30px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
   border-radius: var(--r-full);
-  border: 1px solid var(--border-strong);
-  background: var(--bg-elevated);
+  background: var(--bg-surface);
   color: var(--text-secondary);
   font-family: var(--font-sans);
   font-size: 12px;
-  cursor: pointer;
+  font-weight: 500;
   white-space: nowrap;
-  transition: all var(--t-fast);
+  cursor: pointer;
+  transition:
+    background var(--t-fast),
+    border-color var(--t-fast),
+    color var(--t-fast);
 }
 
 .cat-tab:hover {
-  background: var(--bg-overlay);
+  background: var(--bg-hover);
+  border-color: var(--border-strong);
   color: var(--text-primary);
 }
 
-.cat-tab--active {
+.cat-tab--active,
+.cat-tab--active:hover {
+  background: var(--accent-dim);
   border-color: var(--accent);
   color: var(--accent);
-  background: var(--accent-dim);
 }

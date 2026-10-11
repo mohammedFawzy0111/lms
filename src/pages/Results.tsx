@@ -3,9 +3,9 @@ import { useParams, useNavigate } from "react-router-dom";
 import { invoke } from "@tauri-apps/api/core";
 import { useAuthStore } from "../stores/authStore";
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
-import "./styles/Dashboard.css";
 import "./styles/Results.css";
 import { Page } from "../components/ui/Page";
+import { DataTable, type Column } from "../components/ui/CustomTable";
 
 interface Result_ {
   id: string;
@@ -230,18 +230,169 @@ export default function Results() {
   const allFinalized =
     data.results.length > 0 && data.results.every((r) => !r.is_draft && r.id);
 
+  const emptyEdit = { numeric_value: "", text_value: "", notes: "" };
+  const editFor = (r: Result_) => edits[r.request_item_id] ?? emptyEdit;
+  const isFinal = (r: Result_) => !r.is_draft && !!r.id;
+
+  const columns: Column<Result_>[] = [
+    {
+      key: "test",
+      header: "Test",
+      cell: (r) => (
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          <span
+            className="font-mono"
+            style={{ fontSize: 11, color: "var(--text-muted)" }}
+          >
+            {r.test_code}
+          </span>
+          <span style={{ fontWeight: 500 }}>{r.test_name}</span>
+        </div>
+      ),
+    },
+    {
+      key: "result",
+      header: "Result",
+      className: "result-input-cell",
+      cell: (r) =>
+        r.unit ? (
+          <input
+            className="field__input result-input"
+            type="number"
+            step="any"
+            value={editFor(r).numeric_value}
+            onChange={(e) =>
+              setEdit(r.request_item_id, "numeric_value", e.target.value)
+            }
+            disabled={isFinal(r)}
+            placeholder="0.00"
+          />
+        ) : (
+          <select
+            className="field__input result-input"
+            value={editFor(r).text_value}
+            onChange={(e) =>
+              setEdit(r.request_item_id, "text_value", e.target.value)
+            }
+            disabled={isFinal(r)}
+          >
+            <option value="">—</option>
+            {TEXT_OPTIONS.map((o) => (
+              <option key={o} value={o}>
+                {o}
+              </option>
+            ))}
+          </select>
+        ),
+    },
+    {
+      key: "unit",
+      header: "Unit",
+      cell: (r) => (
+        <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
+          {r.unit ?? "—"}
+        </span>
+      ),
+    },
+    {
+      key: "reference",
+      header: "Reference Range",
+      cell: (r) => (
+        <div style={{ fontSize: 12 }}>
+          {r.ref_min != null && r.ref_max != null
+            ? `${r.ref_min} – ${r.ref_max}`
+            : "—"}
+          {r.ref_age_group && (
+            <span
+              style={{
+                fontSize: 10,
+                color: "var(--text-muted)",
+                display: "block",
+                textTransform: "capitalize",
+              }}
+            >
+              {r.ref_age_group} · {r.ref_gender}
+            </span>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: "flag",
+      header: "Flag",
+      cell: (r) =>
+        r.flag && r.flag !== "normal" ? (
+          <span
+            style={{
+              color: FLAG_COLOR[r.flag],
+              fontWeight: 700,
+              fontSize: 13,
+            }}
+          >
+            {FLAG_LABEL[r.flag]}
+          </span>
+        ) : r.flag === "normal" ? (
+          <span style={{ color: "var(--success)", fontSize: 12 }}>✓</span>
+        ) : (
+          "—"
+        ),
+    },
+    {
+      key: "notes",
+      header: "Notes",
+      cell: (r) => (
+        <input
+          className="field__input result-input"
+          value={editFor(r).notes}
+          onChange={(e) => setEdit(r.request_item_id, "notes", e.target.value)}
+          disabled={isFinal(r)}
+          placeholder="Optional..."
+        />
+      ),
+    },
+    {
+      key: "status",
+      header: "Status",
+      cell: (r) =>
+        isFinal(r) ? (
+          <span className="status-badge status-badge--active">Final</span>
+        ) : (
+          <span className="status-badge status-badge--inactive">Draft</span>
+        ),
+    },
+    {
+      key: "actions",
+      header: "Actions",
+      cell: (r) => {
+        if (isFinal(r)) return null;
+        const isSaving = saving === r.request_item_id;
+        return (
+          <div className="row-actions">
+            <button
+              className="action-btn"
+              onClick={() => saveOne(r, true)}
+              disabled={!!saving}
+            >
+              {isSaving ? "..." : "Draft"}
+            </button>
+            <button
+              className="save-btn"
+              style={{ height: 28, padding: "0 10px", fontSize: 12 }}
+              onClick={() => saveOne(r, false)}
+              disabled={!!saving}
+            >
+              {isSaving ? "..." : "Finalize"}
+            </button>
+          </div>
+        );
+      },
+    },
+  ];
+
   return (
     <Page
       title="Results Entry"
-      subtitle={`${data.request_no} — ${data.patient_name}
-            ${(
-              <span
-                className="font-mono"
-                style={{ marginLeft: 8, color: "var(--text-muted)" }}
-              >
-                ({data.patient_no})
-              </span>
-            )}`}
+      subtitle={`${data.request_no} — ${data.patient_name} (${data.patient_no})`}
       actionBtn={
         <div style={{ display: "flex", gap: "var(--sp-3)" }}>
           <button className="action-btn" onClick={() => navigate("/requests")}>
@@ -288,178 +439,13 @@ export default function Results() {
         )}
       </div>
 
-      <div className="results-table-wrap">
-        <table className="users-table">
-          <thead>
-            <tr>
-              <th>Test</th>
-              <th>Result</th>
-              <th>Unit</th>
-              <th>Reference Range</th>
-              <th>Flag</th>
-              <th>Notes</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.results.map((r) => {
-              const edit = edits[r.request_item_id] ?? {
-                numeric_value: "",
-                text_value: "",
-                notes: "",
-              };
-              const isSaving = saving === r.request_item_id;
-              const isSaved = saved.has(r.request_item_id);
-              const isFinalized = !r.is_draft && !!r.id;
-
-              return (
-                <tr
-                  key={r.request_item_id}
-                  className={isFinalized ? "row--finalized" : ""}
-                >
-                  <td>
-                    <div style={{ display: "flex", flexDirection: "column" }}>
-                      <span
-                        className="font-mono"
-                        style={{ fontSize: 11, color: "var(--text-muted)" }}
-                      >
-                        {r.test_code}
-                      </span>
-                      <span style={{ fontWeight: 500 }}>{r.test_name}</span>
-                    </div>
-                  </td>
-                  <td className="result-input-cell">
-                    {r.unit ? (
-                      <input
-                        className="field__input result-input"
-                        type="number"
-                        step="any"
-                        value={edit.numeric_value}
-                        onChange={(e) =>
-                          setEdit(
-                            r.request_item_id,
-                            "numeric_value",
-                            e.target.value,
-                          )
-                        }
-                        disabled={isFinalized}
-                        placeholder="0.00"
-                      />
-                    ) : (
-                      <select
-                        className="field__input result-input"
-                        value={edit.text_value}
-                        onChange={(e) =>
-                          setEdit(
-                            r.request_item_id,
-                            "text_value",
-                            e.target.value,
-                          )
-                        }
-                        disabled={isFinalized}
-                      >
-                        <option value="">—</option>
-                        {TEXT_OPTIONS.map((o) => (
-                          <option key={o} value={o}>
-                            {o}
-                          </option>
-                        ))}
-                      </select>
-                    )}
-                  </td>
-                  <td style={{ fontSize: 12, color: "var(--text-muted)" }}>
-                    {r.unit ?? "—"}
-                  </td>
-                  <td style={{ fontSize: 12 }}>
-                    {r.ref_min != null && r.ref_max != null
-                      ? `${r.ref_min} – ${r.ref_max}`
-                      : "—"}
-                    {r.ref_age_group && (
-                      <span
-                        style={{
-                          fontSize: 10,
-                          color: "var(--text-muted)",
-                          display: "block",
-                          textTransform: "capitalize",
-                        }}
-                      >
-                        {r.ref_age_group} · {r.ref_gender}
-                      </span>
-                    )}
-                  </td>
-                  <td>
-                    {r.flag && r.flag !== "normal" ? (
-                      <span
-                        style={{
-                          color: FLAG_COLOR[r.flag],
-                          fontWeight: 700,
-                          fontSize: 13,
-                        }}
-                      >
-                        {FLAG_LABEL[r.flag]}
-                      </span>
-                    ) : r.flag === "normal" ? (
-                      <span style={{ color: "var(--success)", fontSize: 12 }}>
-                        ✓
-                      </span>
-                    ) : (
-                      "—"
-                    )}
-                  </td>
-                  <td>
-                    <input
-                      className="field__input result-input"
-                      value={edit.notes}
-                      onChange={(e) =>
-                        setEdit(r.request_item_id, "notes", e.target.value)
-                      }
-                      disabled={isFinalized}
-                      placeholder="Optional..."
-                    />
-                  </td>
-                  <td>
-                    {isFinalized ? (
-                      <span className="status-badge status-badge--active">
-                        Final
-                      </span>
-                    ) : (
-                      <span className="status-badge status-badge--inactive">
-                        Draft
-                      </span>
-                    )}
-                  </td>
-                  <td>
-                    {!isFinalized && (
-                      <div className="row-actions">
-                        <button
-                          className="action-btn"
-                          onClick={() => saveOne(r, true)}
-                          disabled={!!saving}
-                        >
-                          {isSaving ? "..." : "Draft"}
-                        </button>
-                        <button
-                          className="save-btn"
-                          style={{
-                            height: 28,
-                            padding: "0 10px",
-                            fontSize: 12,
-                          }}
-                          onClick={() => saveOne(r, false)}
-                          disabled={!!saving}
-                        >
-                          {isSaving ? "..." : "Finalize"}
-                        </button>
-                      </div>
-                    )}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+      <DataTable
+        rows={data.results}
+        columns={columns}
+        getRowKey={(r) => r.request_item_id}
+        rowClassName={(r) => (isFinal(r) ? "row--finalized" : undefined)}
+        emptyState="No tests on this request."
+      />
     </Page>
   );
 }

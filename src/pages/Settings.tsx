@@ -14,8 +14,6 @@ import {
   XCircle,
 } from "lucide-react";
 import { useSettingsStore } from "../stores/settingsStore";
-import "./styles/Dashboard.css";
-import "./styles/Users.css";
 import "./styles/Settings.css";
 import { Page } from "../components/ui/Page";
 

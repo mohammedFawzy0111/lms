@@ -49,16 +49,6 @@
   white-space: nowrap;
 }
 
-.users-table-wrap {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  background: var(--bg-surface);
-  border: 1px solid var(--border);
-  border-radius: var(--r-lg);
-  transition: background var(--t-normal);
-}
-
 /* Stat grid */
 .stat-grid {
   display: grid;

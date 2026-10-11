@@ -1,6 +1,7 @@
 .shell {
   display:   flex;
   height:    100%;
+  min-height: 0;
   overflow:  hidden;
   --sw:      220px;
   transition: --sw var(--t-slow);
@@ -161,6 +162,7 @@
 /* ── Main ── */
 .shell__main {
   flex:       1;
+  min-height: 0;
   overflow:   hidden;
   background: var(--bg-base);
   transition: background var(--t-normal);

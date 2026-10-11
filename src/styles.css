@@ -262,6 +262,7 @@ body {
     background var(--t-normal),
     color var(--t-normal);
 }
+
 .field__input::placeholder {
   color: var(--text-muted);
 }
@@ -318,4 +319,273 @@ select.field__input option {
   color: var(--danger);
   font-size: 12px;
   flex-shrink: 0;
+}
+
+.save-btn {
+  height:        36px;
+  padding:       0 var(--sp-5);
+  background:    var(--accent);
+  color:         var(--text-inverse);
+  border:        none;
+  border-radius: var(--r-md);
+  font-family:   var(--font-sans);
+  font-size:     13px;
+  font-weight:   600;
+  cursor:        pointer;
+  transition:    background var(--t-fast);
+}
+.save-btn:hover { background: var(--accent-hover); }
+
+/* ── Table states ── */
+.loading,
+.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-3);
+  padding: 3rem var(--sp-4);
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.loading::before {
+  content: "";
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--border-strong);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* ── Table  ── */
+.table-wrap {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-sm);
+  transition:
+    background var(--t-normal),
+    border-color var(--t-normal);
+}
+
+/* separate (not collapse) so sticky headers keep their bottom border */
+.table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.table caption {
+  caption-side: bottom;
+  text-align: left;
+  color: var(--text-muted);
+  font-size: 12px;
+  padding: var(--sp-3) var(--sp-5);
+  border-top: 1px solid var(--border);
+}
+
+/* Header */
+.table th {
+  padding: 12px 20px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+  background: var(--bg-overlay);
+  border-bottom: 1px solid var(--border-strong);
+  transition:
+    background var(--t-normal),
+    color var(--t-normal),
+    border-color var(--t-normal);
+}
+
+/* Body */
+.table td {
+  padding: 14px 20px;
+  color: var(--text-primary);
+  vertical-align: middle;
+  border-bottom: 1px solid var(--border);
+  font-variant-numeric: tabular-nums;
+  transition:
+    background var(--t-fast),
+    color var(--t-normal),
+    border-color var(--t-normal);
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Rounded corners follow the wrapper */
+.table thead tr:first-child th:first-child {
+  border-top-left-radius: calc(var(--r-lg) - 1px);
+}
+.table thead tr:first-child th:last-child {
+  border-top-right-radius: calc(var(--r-lg) - 1px);
+}
+
+/* Hover: soft tint + accent marker on the leading edge */
+.table tbody tr:hover td {
+  background: var(--bg-hover);
+}
+.table tbody tr:hover td:first-child {
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+
+/* Row states */
+.table tbody tr.row--selected td {
+  background: var(--bg-active);
+}
+.table tbody tr.row--selected td:first-child {
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+
+.table tbody tr.row--finalized td {
+  color: var(--text-secondary);
+}
+.table tbody tr.row--finalized:hover td {
+  background: var(--bg-active);
+}
+
+/* Actions */
+.table .row-actions {
+  display: flex;
+  gap: var(--sp-1);
+  justify-content: flex-end;
+}
+
+.table .row-actions .action-btn {
+  height: 28px;
+  padding: 0 10px;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--r-md);
+  cursor: pointer;
+  transition:
+    color var(--t-fast),
+    background var(--t-fast),
+    border-color var(--t-fast);
+}
+
+.table .row-actions .action-btn:hover {
+  color: var(--accent);
+  background: var(--accent-dim);
+  border-color: var(--accent-dim);
+}
+
+/* Optional: add className="action-btn action-btn--danger" to Delete */
+.table .row-actions .action-btn--danger:hover {
+  color: var(--danger);
+  background: var(--danger-dim);
+  border-color: var(--danger-dim);
+}
+
+.table .font-mono {
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+/* Badges */
+.table .status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: var(--r-full);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.table .status-badge::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.table .status-badge--active {
+  background: var(--success-dim);
+  color: var(--success);
+}
+
+.table .status-badge--inactive {
+  background: var(--danger-dim);
+  color: var(--danger);
+}
+
+.table .status-badge--warning {
+  background: var(--warning-dim);
+  color: var(--warning);
+}
+
+.table .badge-count {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: var(--r-full);
+  background: var(--accent-dim);
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.table .user-cell {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+
+.table .user-avatar {
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  border-radius: 50%;
+  background: var(--accent-dim);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.table .role-badge {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+/* Checkbox column (Requests) */
+.table .col-check {
+  width: 44px;
+  padding-right: 0;
+}
+
+/* Extra status badge variants used by Requests */
+.table .status-badge--default {
+  background: var(--bg-overlay);
+  color: var(--text-secondary);
+}
+
+.table .status-badge--info {
+  background: var(--info-dim);
+  color: var(--info);
+}
+
+.table .status-badge--success {
+  background: var(--success-dim);
+  color: var(--success);
 }

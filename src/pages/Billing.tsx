@@ -5,6 +5,7 @@ import { useAuthStore } from "../stores/authStore";
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 import "./styles/Billing.css";
 import { Page } from "../components/ui/Page";
+import { DataTable } from "../components/ui/CustomTable";
 import { CatTabs } from "../components/ui/CatTabs";
 
 interface Invoice {
@@ -156,78 +157,84 @@ export default function Billing() {
 
       {error && <div className="error">{error}</div>}
 
-      <div className="users-table-wrap">
-        {loading ? (
-          <div className="users-loading">Loading...</div>
-        ) : invoices.length === 0 ? (
-          <div className="users-loading">No invoices found.</div>
-        ) : (
-          <table className="users-table">
-            <thead>
-              <tr>
-                <th>Invoice #</th>
-                <th>Patient</th>
-                <th>Total</th>
-                <th>Paid</th>
-                <th>Balance</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {invoices.map((inv) => (
-                <tr key={inv.id}>
-                  <td>
-                    <span className="font-mono" style={{ fontSize: 12 }}>
-                      {inv.invoice_no}
-                    </span>
-                  </td>
-                  <td>
-                    <div style={{ display: "flex", flexDirection: "column" }}>
-                      <span>{inv.patient_name}</span>
-                      <span
-                        className="font-mono"
-                        style={{ fontSize: 11, color: "var(--text-muted)" }}
-                      >
-                        {inv.patient_no}
-                      </span>
-                    </div>
-                  </td>
-                  <td>${inv.total.toFixed(2)}</td>
-                  <td style={{ color: "var(--success)" }}>
-                    ${inv.amount_paid.toFixed(2)}
-                  </td>
-                  <td
-                    style={{
-                      color:
-                        inv.balance > 0
-                          ? "var(--warning)"
-                          : "var(--text-muted)",
-                    }}
-                  >
-                    ${inv.balance.toFixed(2)}
-                  </td>
-                  <td>
-                    <span
-                      className={`status-badge status-badge--${STATUS_COLORS[inv.status] ?? "inactive"}`}
-                    >
-                      {inv.status.charAt(0).toUpperCase() + inv.status.slice(1)}
-                    </span>
-                  </td>
-                  <td>
-                    <button
-                      className="action-btn"
-                      onClick={() => setDetailId(inv.id)}
-                    >
-                      View
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
+      <DataTable
+        rows={invoices}
+        loadingState={loading}
+        getRowKey={(inv) => inv.id}
+        emptyState="No invoices found."
+        columns={[
+          {
+            key: "invoice_no",
+            header: "Invoice #",
+            cell: (inv) => <span className="font-mono">{inv.invoice_no}</span>,
+          },
+          {
+            key: "patient_name",
+            header: "Patient",
+            cell: (inv) => (
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                <span>{inv.patient_name}</span>
+                <span
+                  className="font-mono"
+                  style={{ fontSize: 11, color: "var(--text-muted)" }}
+                >
+                  {inv.patient_no}
+                </span>
+              </div>
+            ),
+          },
+          {
+            key: "total",
+            header: "Total",
+            cell: (inv) => `$${inv.total.toFixed(2)}`,
+          },
+          {
+            key: "amount_paid",
+            header: "Paid",
+            cell: (inv) => (
+              <span style={{ color: "var(--success)" }}>
+                ${inv.amount_paid.toFixed(2)}
+              </span>
+            ),
+          },
+          {
+            key: "balance",
+            header: "Balance",
+            cell: (inv) => (
+              <span
+                style={{
+                  color:
+                    inv.balance > 0 ? "var(--warning)" : "var(--text-muted)",
+                }}
+              >
+                ${inv.balance.toFixed(2)}
+              </span>
+            ),
+          },
+          {
+            key: "status",
+            header: "Status",
+            cell: (inv) => (
+              <span
+                className={`status-badge status-badge--${STATUS_COLORS[inv.status] ?? "inactive"}`}
+              >
+                {inv.status.charAt(0).toUpperCase() + inv.status.slice(1)}
+              </span>
+            ),
+          },
+          {
+            key: "actions",
+            header: "Actions",
+            cell: (inv) => (
+              <div className="row-actions">
+                <button className="action-btn" onClick={() => setDetailId(inv.id)}>
+                  View
+                </button>
+              </div>
+            ),
+          },
+        ]}
+      />
 
       {detailId && (
         <InvoiceDetailModal

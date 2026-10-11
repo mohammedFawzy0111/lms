@@ -2,43 +2,66 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  gap: var(--sp-1);
+  min-height: 0;
   overflow: hidden;
+  background: var(--bg-base);
 }
 
 .page-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
+  gap: var(--sp-4);
   flex-shrink: 0;
+  padding: var(--sp-5) var(--sp-6);
   background: var(--bg-surface);
-  padding: var(--sp-4);
-  box-shadow: var(--shadow-lg);
+  border-bottom: 1px solid var(--border);
+  transition:
+    background var(--t-normal),
+    border-color var(--t-normal);
 }
 
 .page-title {
   font-size: 20px;
-  font-weight: 700;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
   color: var(--text-primary);
   transition: color var(--t-normal);
 }
 
 .page-sub {
+  margin-top: var(--sp-1);
   font-size: 13px;
   color: var(--text-secondary);
-  margin-top: 2px;
   transition: color var(--t-normal);
 }
 
 .page-date {
-  font-size: 12px;
+  margin-top: var(--sp-1);
+  font-family: var(--font-mono);
+  font-size: 11px;
   color: var(--text-muted);
-  margin-top: 4px;
   transition: color var(--t-normal);
 }
 
+/* Right side of the header (action button) */
+.page-header > :last-child:not(div:first-child) {
+  flex-shrink: 0;
+}
+
+/* Body is a flex column so toolbar + .table-wrap can fill the height */
 .page-body {
-  background: none;
-  padding: var(--sp-5);
-  margin-bottom: var(--sp-1);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  min-height: 0;
+  padding: var(--sp-5) var(--sp-6);
+  overflow: hidden;
+}
+
+/* Toolbar inside the page body no longer needs its own padding */
+.page-body > .toolbar {
+  padding: 0;
 }
