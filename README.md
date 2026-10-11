@@ -2,7 +2,8 @@
 
 A desktop laboratory and patient management system built with Tauri, React, and TypeScript.
 
-This repository is not a generic starter template. It is a real application for managing laboratory workflows, patient records, investigation requests, results, billing, and user access in a desktop environment.
+It is an application for managing laboratory workflows, patient records, investigation requests,
+results, billing, and user access in a desktop environment.
 
 ## Overview
 
@@ -22,7 +23,7 @@ LMS is designed for clinical and laboratory operations where staff need a fast, 
 - Vite for frontend tooling
 - Tauri for desktop packaging
 - Rust backend for data access and business logic
-- SQLite via rusqlite for local data storage
+- SQLite for local data storage
 - authentication and secure local storage patterns
 
 ## Core Features
@@ -92,21 +93,6 @@ npm run tauri build
 
 This compiles the app and produces desktop build artifacts for the target platform.
 
-## Project Domain
-
-This project is a laboratory management system / clinical workflow dashboard. The codebase includes modules and routes for:
-
-- Dashboard
-- Requests
-- Results
-- Patients
-- Investigations
-- Billing
-- Users
-- Settings
-- Printable reports and receipts
-
-These areas are directly reflected in the app structure and command modules in the Rust backend.
 
 ## Notes
 
@@ -114,4 +100,4 @@ The repo is a practical app foundation for a diagnostic or laboratory management
 
 ## License
 
-This project is intended for use and modification under the repository's chosen license.
+This project is intended for use and modification under GNU General Public License v3.0 (GPL-3.0).
