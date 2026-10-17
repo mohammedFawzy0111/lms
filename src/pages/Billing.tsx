@@ -375,7 +375,7 @@ function InvoiceDetailModal({
       <div className="modal-backdrop" onClick={onClose}>
         <div className="modal" onClick={(e) => e.stopPropagation()}>
           <div className="modal__body">
-            <div className="users-loading">Loading...</div>
+            <div className="loading">Loading...</div>
           </div>
         </div>
       </div>
@@ -398,7 +398,7 @@ function InvoiceDetailModal({
         </div>
         <div className="modal__body">
           {error && (
-            <div className="users-error" style={{ marginBottom: 12 }}>
+            <div className="error" style={{ marginBottom: 12 }}>
               {error}
             </div>
           )}
@@ -410,7 +410,7 @@ function InvoiceDetailModal({
           >
             Charges
           </label>
-          <table className="ranges-table" style={{ marginBottom: 16 }}>
+          <table className="mini-table" style={{ marginBottom: 16 }}>
             <thead>
               <tr>
                 <th>Test</th>
@@ -592,7 +592,7 @@ function InvoiceDetailModal({
               >
                 Payment History
               </label>
-              <table className="ranges-table">
+              <table className="mini-table">
                 <thead>
                   <tr>
                     <th>Receipt #</th>

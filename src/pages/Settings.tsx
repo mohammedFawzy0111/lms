@@ -87,7 +87,7 @@ export default function SettingsPage() {
     >
       {saved && (
         <div
-          className="users-error"
+          className="error"
           style={{
             background: "var(--success-dim)",
             borderColor: "var(--success)",
@@ -98,7 +98,7 @@ export default function SettingsPage() {
           Settings saved successfully
         </div>
       )}
-      {error && <div className="users-error">{error}</div>}
+      {error && <div className="error">{error}</div>}
 
       <div
         style={{
@@ -423,7 +423,7 @@ function BackupSettingsCard() {
 
       {message && (
         <div
-          className="users-error"
+          className="error"
           style={
             message.type === "success"
               ? {
@@ -516,8 +516,8 @@ function BackupSettingsCard() {
       </div>
 
       {backups.length > 0 && (
-        <div className="users-table-wrap" style={{ maxHeight: 260 }}>
-          <table className="users-table">
+        <div className="table-wrap" style={{ maxHeight: 260 }}>
+          <table className="table">
             <thead>
               <tr>
                 <th>File</th>

@@ -1,26 +1,3 @@
-.modal--wide {
-  width: 640px;
-}
-
-.modal-grid--3 {
-  grid-template-columns: 1fr 1fr 1fr;
-}
-
-.field--span2 {
-  grid-column: span 2;
-}
-
-.field--span3 {
-  grid-column: span 3;
-}
-
-.field__textarea {
-  height: 72px;
-  padding: var(--sp-2) var(--sp-3);
-  resize: vertical;
-  font-family: var(--font-sans);
-}
-
 .dupe-warning {
   background: var(--warning-dim);
   border: 1px solid var(--warning);
@@ -70,12 +47,6 @@
 .detail-tab--active {
   color: var(--accent);
   border-color: var(--accent);
-}
-
-.detail-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: var(--sp-5);
 }
 
 .visits-empty {

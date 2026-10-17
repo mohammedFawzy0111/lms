@@ -205,7 +205,7 @@ export default function Requests() {
         />
       </div>
 
-      {error && <div className="users-error">{error}</div>}
+      {error && <div className="error">{error}</div>}
 
       <DataTable
         rows={requests}
@@ -543,7 +543,7 @@ function NewRequestModal({
 
         <div className="modal__body">
           {error && (
-            <div className="users-error" style={{ marginBottom: 12 }}>
+            <div className="error" style={{ marginBottom: 12 }}>
               {error}
             </div>
           )}
@@ -897,7 +897,7 @@ function RequestDetailModal({
       <div className="modal-backdrop" onClick={onClose}>
         <div className="modal" onClick={(e) => e.stopPropagation()}>
           <div className="modal__body">
-            <div className="users-loading">Loading...</div>
+            <div className="loading">Loading...</div>
           </div>
         </div>
       </div>
@@ -912,7 +912,7 @@ function RequestDetailModal({
         </div>
         <div className="modal__body">
           {error && (
-            <div className="users-error" style={{ marginBottom: 12 }}>
+            <div className="error" style={{ marginBottom: 12 }}>
               {error}
             </div>
           )}
@@ -956,7 +956,7 @@ function RequestDetailModal({
           >
             Test Items
           </label>
-          <table className="ranges-table">
+          <table className="mini-table">
             <thead>
               <tr>
                 <th>Code</th>
@@ -1000,7 +1000,7 @@ function RequestDetailModal({
               >
                 Print History ({printHistory.length})
               </label>
-              <table className="ranges-table">
+              <table className="mini-table">
                 <thead>
                   <tr>
                     <th>Printed By</th>

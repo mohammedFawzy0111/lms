@@ -1,0 +1,531 @@
+/* ============================================================================
+Shared components
+Everything here is used by more than one page. Page-specific styles stay in
+pages/styles/<Page>.css. If a class is used by two pages, it belongs here:
+page CSS is code-split with its route, so a page can't rely on another
+page's stylesheet being loaded.
+============================================================================ */
+
+/* ── Buttons ─────────────────────────────────────────────────────────────── */
+
+.save-btn,
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  cursor: pointer;
+  transition:
+  background var(--t-fast),
+  color var(--t-fast),
+  border-color var(--t-fast);
+}
+
+.save-btn:disabled,
+.action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Primary */
+.save-btn {
+  height: 36px;
+  padding: 0 var(--sp-5);
+  font-weight: 600;
+  color: var(--text-inverse);
+  background: var(--accent);
+  border: none;
+  border-radius: var(--r-md);
+}
+.save-btn:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+/* Secondary / neutral */
+.action-btn {
+  height: 36px;
+  padding: 0 var(--sp-4);
+  font-weight: 500;
+  color: var(--text-primary);
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-md);
+}
+.action-btn:hover:not(:disabled) {
+  background: var(--bg-hover);
+}
+
+.action-btn--danger {
+  color: var(--danger);
+}
+.action-btn--danger:hover:not(:disabled) {
+  background: var(--danger-dim);
+  border-color: var(--danger);
+}
+
+/* ── Fields ──────────────────────────────────────────────────────────────── */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+}
+
+.field__label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  letter-spacing: 0.02em;
+  transition: color var(--t-normal);
+}
+
+.field__input {
+  width: 100%;
+  height: 38px;
+  padding: 0 var(--sp-3);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--text-primary);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-md);
+  outline: none;
+  transition:
+  border-color var(--t-fast),
+  box-shadow var(--t-fast),
+  background var(--t-normal),
+  color var(--t-normal);
+}
+.field__input::placeholder {
+  color: var(--text-muted);
+}
+.field__input:hover {
+  border-color: var(--text-muted);
+}
+.field__input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}
+.field__input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+select.field__input {
+  appearance: none;
+  padding-right: 32px;
+  background-image: var(--select-arrow);
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 12px;
+  cursor: pointer;
+}
+select.field__input option {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+}
+
+.field__textarea {
+  height: 72px;
+  padding: var(--sp-2) var(--sp-3);
+  resize: vertical;
+  font-family: var(--font-sans);
+}
+
+/* Spans for fields inside .modal-grid / .modal-grid--3 */
+.field--span2 {
+  grid-column: span 2;
+}
+.field--span3 {
+  grid-column: span 3;
+}
+
+/* ── Toolbar, errors, loading / empty states ─────────────────────────────── */
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  padding: var(--sp-4);
+  margin: 0;
+}
+
+.search {
+  flex-shrink: 0;
+  max-width: 360px;
+}
+
+.error {
+  padding: var(--sp-3) var(--sp-4);
+  font-size: 12px;
+  color: var(--danger);
+  background: var(--danger-dim);
+  border: 1px solid var(--danger);
+  border-radius: var(--r-md);
+  flex-shrink: 0;
+}
+
+.loading,
+.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-3);
+  padding: 3rem var(--sp-4);
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.loading::before {
+  content: "";
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--border-strong);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* ── Badges & avatars ────────────────────────────────────────────────────── */
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: var(--r-full);
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.status-badge::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.status-badge--default {
+  background: var(--bg-overlay);
+  color: var(--text-secondary);
+}
+.status-badge--info {
+  background: var(--info-dim);
+  color: var(--info);
+}
+.status-badge--active,
+.status-badge--success {
+  background: var(--success-dim);
+  color: var(--success);
+}
+.status-badge--warning {
+  background: var(--warning-dim);
+  color: var(--warning);
+}
+.status-badge--inactive,
+.status-badge--danger {
+  background: var(--danger-dim);
+  color: var(--danger);
+}
+
+.badge-count {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: var(--r-full);
+  background: var(--accent-dim);
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.role-badge {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.user-cell {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+
+.user-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  border-radius: 50%;
+  background: var(--accent-dim);
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 700;
+  transition: background var(--t-normal);
+}
+
+/* ── Modal ───────────────────────────────────────────────────────────────── */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--overlay);
+  backdrop-filter: blur(4px);
+}
+
+.modal {
+  display: flex;
+  flex-direction: column;
+  width: 460px;
+  max-width: 90vw;
+  max-height: 85vh;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-lg);
+  animation: fadeIn 150ms ease;
+  transition:
+  background var(--t-normal),
+  border-color var(--t-normal);
+}
+.modal--sm {
+  width: 380px;
+}
+.modal--wide {
+  width: 640px;
+}
+
+.modal__header {
+  padding: var(--sp-5) var(--sp-6);
+  border-bottom: 1px solid var(--border);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.modal__body {
+  flex: 1;
+  min-height: 0;
+  padding: var(--sp-5) var(--sp-6);
+  overflow-y: auto;
+}
+
+.modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--sp-3);
+  padding: var(--sp-4) var(--sp-6);
+  border-top: 1px solid var(--border);
+}
+
+.modal-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-4);
+}
+.modal-grid--3 {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+/* ── Tables ──────────────────────────────────────────────────────────────── */
+
+.table-wrap {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-sm);
+  transition:
+  background var(--t-normal),
+  border-color var(--t-normal);
+}
+
+/* separate (not collapse) so sticky headers keep their bottom border */
+.table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.table caption {
+  caption-side: bottom;
+  padding: var(--sp-3) var(--sp-5);
+  text-align: left;
+  font-size: 12px;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border);
+}
+
+.table th {
+  padding: 12px 20px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+  background: var(--bg-overlay);
+  border-bottom: 1px solid var(--border-strong);
+  transition:
+  background var(--t-normal),
+  color var(--t-normal),
+  border-color var(--t-normal);
+}
+
+.table td {
+  padding: 14px 20px;
+  color: var(--text-primary);
+  vertical-align: middle;
+  border-bottom: 1px solid var(--border);
+  font-variant-numeric: tabular-nums;
+  transition:
+  background var(--t-fast),
+  color var(--t-normal),
+  border-color var(--t-normal);
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* rounded corners follow the wrapper */
+.table thead tr:first-child th:first-child {
+  border-top-left-radius: calc(var(--r-lg) - 1px);
+}
+.table thead tr:first-child th:last-child {
+  border-top-right-radius: calc(var(--r-lg) - 1px);
+}
+
+/* hover: soft tint + accent marker on the leading edge */
+.table tbody tr:hover td {
+  background: var(--bg-hover);
+}
+.table tbody tr:hover td:first-child {
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+
+/* row states */
+.table tbody tr.row--selected td {
+  background: var(--bg-active);
+}
+.table tbody tr.row--selected td:first-child {
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+.table tbody tr.row--finalized td {
+  color: var(--text-secondary);
+}
+.table tbody tr.row--finalized:hover td {
+  background: var(--bg-active);
+}
+
+.table .font-mono {
+  font-size: 12px;
+}
+
+/* checkbox column (Requests) */
+.table .col-check {
+  width: 44px;
+  padding-right: 0;
+}
+
+/* per-row buttons: ghost style so a row of four doesn't look like a toolbar */
+.row-actions {
+  display: flex;
+  gap: var(--sp-1);
+  justify-content: flex-end;
+}
+.row-actions .action-btn {
+  height: 28px;
+  padding: 0 10px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  border-color: transparent;
+}
+.row-actions .action-btn:hover:not(:disabled) {
+  color: var(--accent);
+  background: var(--accent-dim);
+  border-color: var(--accent-dim);
+}
+.row-actions .action-btn--danger:hover:not(:disabled) {
+  color: var(--danger);
+  background: var(--danger-dim);
+  border-color: var(--danger-dim);
+}
+
+/* small inline-editable table used inside modals (ranges, payments, ...) */
+.mini-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.mini-table th {
+  padding: 8px 12px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+}
+.mini-table td {
+  padding: 8px 12px;
+  font-size: 13px;
+  border-bottom: 1px solid var(--border);
+}
+.mini-table .field__input {
+  height: 32px;
+  font-size: 12px;
+}
+
+/* ── Shared page pieces ──────────────────────────────────────────────────── */
+
+/* Patients detail + Requests detail */
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: var(--sp-5);
+}
+
+/* Investigation picker used by the profile form and the request form */
+.test-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 280px;
+  min-height: 0;
+  padding: var(--sp-2);
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+}
+.test-picker__item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-2) var(--sp-3);
+  font-size: 13px;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  transition: background var(--t-fast);
+}
+.test-picker__item:hover {
+  background: var(--bg-hover);
+}
+.test-picker__item input {
+  cursor: pointer;
+}

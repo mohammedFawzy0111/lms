@@ -76,7 +76,7 @@ export default function Results() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState<string | null>(null);
-  const [saved, setSaved] = useState<Set<string>>(new Set());
+  const [, setSaved] = useState<Set<string>>(new Set());
 
   // Local edits keyed by request_item_id
   const [edits, setEdits] = useState<
@@ -217,13 +217,13 @@ export default function Results() {
   if (loading)
     return (
       <div className="page">
-        <div className="users-loading">Loading results...</div>
+        <div className="loading">Loading results...</div>
       </div>
     );
   if (!data)
     return (
       <div className="page">
-        <div className="users-error">{error}</div>
+        <div className="error">{error}</div>
       </div>
     );
 
@@ -413,7 +413,7 @@ export default function Results() {
         </div>
       }
     >
-      {error && <div className="users-error">{error}</div>}
+      {error && <div className="error">{error}</div>}
 
       <div className="results-patient-bar">
         <span>

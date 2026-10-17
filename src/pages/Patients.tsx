@@ -130,7 +130,7 @@ export default function Patients() {
         />
       </div>
 
-      {error && <div className="users-error">{error}</div>}
+      {error && <div className="error">{error}</div>}
 
       <DataTable
         rows={patients}
@@ -298,7 +298,7 @@ function PatientFormModal({
         </div>
         <div className="modal__body">
           {error && (
-            <div className="users-error" style={{ marginBottom: 12 }}>
+            <div className="error" style={{ marginBottom: 12 }}>
               {error}
             </div>
           )}

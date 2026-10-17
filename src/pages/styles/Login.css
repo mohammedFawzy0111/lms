@@ -107,18 +107,6 @@
   gap: var(--sp-4);
 }
 
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-1);
-}
-.field__label {
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--text-secondary);
-  letter-spacing: 0.02em;
-  transition: color var(--t-normal);
-}
 .field__wrap {
   position: relative;
 }

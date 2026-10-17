@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useAuthStore, User } from "../stores/authStore";
 import { useEnterKeyNav } from "../hooks/useEnterKeyNav";
-import "./styles/Users.css";
 import { Page } from "../components/ui/Page";
 import { DataTable } from "../components/ui/CustomTable";
 
@@ -72,7 +71,7 @@ export default function Users() {
         </button>
       }
     >
-      {error && <div className="users-error">{error}</div>}
+      {error && <div className="error">{error}</div>}
 
       <DataTable
         rows={users}
@@ -193,7 +192,7 @@ function CreateUserModal({
         <div className="modal__header">New User</div>
         <div className="modal__body">
           {error && (
-            <div className="users-error" style={{ marginBottom: 12 }}>
+            <div className="error" style={{ marginBottom: 12 }}>
               {error}
             </div>
           )}
@@ -287,12 +286,12 @@ function ChangePasswordModal({
   }
 
   return (
-    <div className="model-backdrop" onClick={onClose}>
+    <div className="modal-backdrop" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal__header">Change Password - {user.full_name}</div>
         <div className="modal__body">
           {error && (
-            <div className="users-error" style={{ marginBottom: 12 }}>
+            <div className="error" style={{ marginBottom: 12 }}>
               {error}
             </div>
           )}

@@ -1,4 +1,3 @@
-import "./styles/Investigations.css";
 import { CatTabs } from "../components/ui/CatTabs";
 import { DataTable } from "../components/ui/CustomTable";
 import { Page } from "../components/ui/Page";
@@ -669,9 +668,9 @@ function ReferenceRangesModal({
           )}
 
           {loading ? (
-            <div className="users-loading">Loading...</div>
+            <div className="loading">Loading...</div>
           ) : (
-            <table className="ranges-table">
+            <table className="mini-table">
               <thead>
                 <tr>
                   <th>Age Group</th>
@@ -842,16 +841,16 @@ function ProfilesView({
   return (
     <>
       {error && <div className="error">{error}</div>}
-      <div className="users-table-wrap">
+      <div className="table-wrap">
         {loading ? (
-          <div className="users-loading">Loading...</div>
+          <div className="loading">Loading...</div>
         ) : profiles.length === 0 ? (
-          <div className="users-loading">
+          <div className="loading">
             No profiles yet. Create one to bundle common tests together (e.g.
             CBC, LFT).
           </div>
         ) : (
-          <table className="users-table">
+          <table className="table">
             <thead>
               <tr>
                 <th>Name</th>
@@ -999,7 +998,7 @@ function ProfileFormModal({
         </div>
         <div className="modal__body">
           {error && (
-            <div className="users-error" style={{ marginBottom: 12 }}>
+            <div className="error" style={{ marginBottom: 12 }}>
               {error}
             </div>
           )}
