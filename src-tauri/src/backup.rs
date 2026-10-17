@@ -80,7 +80,7 @@ pub fn list_backups(dir: &Path) -> Result<Vec<(String, String, u64)>> {
             let filename = path.file_name().unwrap().to_string_lossy().to_string();
             backups.push((filename, path.to_string_lossy().to_string(), metadata.len()));
         }
-}
+    }
 
     // Sort newest first by filename (timestamp is embedded in the name , so string sort works)
     backups.sort_by(|a, b| b.0.cmp(&a.0));

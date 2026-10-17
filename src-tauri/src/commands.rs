@@ -868,48 +868,31 @@ pub fn cmd_get_payment(state: State<AppState>, id: String) -> ApiResult<Payment>
 pub fn cmd_get_dashboard_stats(state: State<AppState>) -> ApiResult<DashboardStats> {
     let conn = state.db.lock().unwrap();
 
-    let today_patients: i64 = conn
-        .query_row("SELECT COUNT(*) FROM patients WHERE date(created_at) = date('now')", [], |r| {
-            r.get(0)
-        })
-        .unwrap_or(0);
-
-    let today_revenue: f64 = conn
-        .query_row(
-            "SELECT COALESCE(SUM(amount), 0) FROM payments WHERE date(paid_at) = date('now')",
-            [],
-            |r| r.get(0),
-        )
-        .unwrap_or(0.0);
-
-    let pending_investigation : i64 = conn.query_row(
-        "SELECT COUNT(*) FROM lab_request_items WHERE status NOT IN ('completed', 'delivered', 'cancelled')", 
-        [], |r| r.get(0),
-    ).unwrap_or(0);
-
-    let completed_today: i64 = conn.query_row(
-        "SELECT COUNT(*) FROM lab_request_items WHERE status = 'completed' AND date(created_at) = date('now')", 
-        [], |r| r.get(0),
-    ).unwrap_or(0);
-
-    let monthly_patients: i64 = conn.query_row(
-        "SELECT COUNT(*) FROM patients WHERE strftime('%Y-%m',created_at) = strftime('%Y-%m','now')",
-        [], |r| r.get(0),
-    ).unwrap_or(0);
-
-    let monthly_revenue: f64 = conn.query_row(
-        "SELECT COALESCE(SUM(amount), 0) FROM payments WHERE strftime('%Y-%m', paid_at) = strftime('%Y-%m','now')",
-        [], |r| r.get(0),
-    ).unwrap_or(0.0);
-
-    ApiResult::ok(DashboardStats {
-        today_patients,
-        today_revenue,
-        pending_investigation,
-        completed_today,
-        monthly_patients,
-        monthly_revenue,
-    })
+    // Single query with 6 scalar subqueries — one round-trip instead of 6.
+    match conn.query_row(
+        "SELECT
+            (SELECT COUNT(*) FROM patients WHERE date(created_at) = date('now')) AS today_patients,
+            (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE date(paid_at) = date('now')) AS today_revenue,
+            (SELECT COUNT(*) FROM lab_request_items WHERE status NOT IN ('completed', 'delivered', 'cancelled')) AS pending_investigation,
+            (SELECT COUNT(*) FROM lab_request_items WHERE status = 'completed' AND date(created_at) = date('now')) AS completed_today,
+            (SELECT COUNT(*) FROM patients WHERE strftime('%Y-%m', created_at) = strftime('%Y-%m', 'now')) AS monthly_patients,
+            (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE strftime('%Y-%m', paid_at) = strftime('%Y-%m', 'now')) AS monthly_revenue
+        ",
+        [],
+        |r| {
+            Ok(DashboardStats {
+                today_patients: r.get(0)?,
+                today_revenue: r.get(1)?,
+                pending_investigation: r.get(2)?,
+                completed_today: r.get(3)?,
+                monthly_patients: r.get(4)?,
+                monthly_revenue: r.get(5)?,
+            })
+        },
+    ) {
+        Ok(r) => ApiResult::ok(r),
+        Err(e) => ApiResult::err(e.to_string()),
+    }
 }
 
 #[tauri::command]
@@ -985,108 +968,40 @@ pub fn cmd_global_search(state: State<AppState>, query: String) -> ApiResult<Vec
     if q.is_empty() {
         return ApiResult::ok(vec![]);
     }
-    let pattern = format!("%{}%", q);
-    let mut results = Vec::new();
 
-    //patients
-    if let Ok(mut stmt) = conn.prepare(
-        "SELECT id, full_name, patient_no, phone From patients
-        WHERE full_name LIKE ?1 COLLATE NOCASE OR patient_no LIKe ?1 OR phone LIKE ?1
+    let mut stmt = match conn.prepare(
+        "SELECT 
+            id,
+            snippet(search_index, 0, '<b>', '</b>', '...',  20) AS title,
+            snippet(search_index, 0, '<b>', '</b>', '...',  30) AS subtitle,
+            CASE
+                WHEN body MATCH '*patient*' THEN 'patient'
+                WHEN body MATCH '*investigation*' THEN 'investigation'
+                WHEN body MATCH '*request*' THEN 'request'
+                WHEN body MATCH '*invoice*' OR body MATCH '*receipt*' THEN 'invoice'
+                ELSE 'other'
+            END AS kind
+        FROM search_index
+        WHERE search_index MATCH ?1
+        ORDER BY rank
         LIMIT 8",
     ) {
-        if let Ok(rows) = stmt.query_map(params![pattern], |row| {
-            Ok(SearchResult {
-                kind: "patient".to_string(),
-                id: row.get(0)?,
-                title: row.get(1)?,
-                subtitle: row.get(2)?,
-                extra: row.get(3)?,
-            })
-        }) {
-            results.extend(rows.filter_map(|r| r.ok()));
-        }
-    }
+        Ok(s) => s,
+        Err(e) => return ApiResult::err(e.to_string()),
+    };
 
-    //investigations
-    if let Ok(mut stmt) = conn.prepare(
-        "SELECT id, test_name, test_code From investigations 
-        WHERE test_name LIKE ?1 COLLATE NOCASE OR test_code LIKe ?1 COLLATE NOCASE
-        LIMIT 8",
-    ) {
-        if let Ok(rows) = stmt.query_map(params![pattern], |row| {
+    let results: Vec<SearchResult> = stmt
+        .query_map(params![q], |row| {
             Ok(SearchResult {
-                kind: "investigation".to_string(),
+                kind: row.get::<_, String>(3)?,
                 id: row.get(0)?,
                 title: row.get(1)?,
                 subtitle: row.get(2)?,
-                extra: None,
+                extra: row.get::<_, Option<String>>(3)?,
             })
-        }) {
-            results.extend(rows.filter_map(|r| r.ok()));
-        }
-    }
+        })
+        .map(|row| row.filter_map(|r| r.ok()).collect())
+        .unwrap_or_default();
 
-    //Requests
-    if let Ok(mut stmt) = conn.prepare(
-        "SELECT r.id, r.request_no, p.full_name, r.status From lab_requests r 
-        JOIN patients p ON p.id = r.patient_id
-        WHERE r.request_no LIKE ?1 OR p.full_name LIKe ?1 COLLATE NOCASE 
-        LIMIT 8",
-    ) {
-        if let Ok(rows) = stmt.query_map(params![pattern], |row| {
-            Ok(SearchResult {
-                kind: "request".to_string(),
-                id: row.get(0)?,
-                title: row.get(1)?,
-                subtitle: row.get(2)?,
-                extra: row.get(3)?,
-            })
-        }) {
-            results.extend(rows.filter_map(|r| r.ok()));
-        }
-    }
-
-    // Invoice | Receipt
-    if let Ok(mut stmt) = conn.prepare(
-        "SELECT inv.id, inv.invoice_no, p.full_name, inv.status From invoices inv 
-        JOIN lab_requests r ON r.id = inv.request_id
-        JOIN patients p ON p.id = r.patient_id
-        WHERE inv.invoice_no LIKE ?1 OR p.full_name LIKe ?1 COLLATE NOCASE 
-        LIMIT 8",
-    ) {
-        if let Ok(rows) = stmt.query_map(params![pattern], |row| {
-            Ok(SearchResult {
-                kind: "invoice".to_string(),
-                id: row.get(0)?,
-                title: row.get(1)?,
-                subtitle: row.get(2)?,
-                extra: row.get(3)?,
-            })
-        }) {
-            results.extend(rows.filter_map(|r| r.ok()));
-        }
-    }
-
-    // Receitp numbers directly
-    if let Ok(mut stmt) = conn.prepare(
-        "SELECT pay.id, pay.receipt_no, p.full_name, inv.id From  payments pay
-        JOIN invoices inv ON inv.id = pay.invoice_id
-        JOIN lab_requests r ON r.id = inv.request_id
-        JOIN patients p ON p.id = r.patient_id
-        WHERE pay.receipt_no LIKE ?1 
-        LIMIT 5",
-    ) {
-        if let Ok(rows) = stmt.query_map(params![pattern], |row| {
-            Ok(SearchResult {
-                kind: "receipt".to_string(),
-                id: row.get(0)?,
-                title: row.get(1)?,
-                subtitle: row.get(2)?,
-                extra: row.get(3)?,
-            })
-        }) {
-            results.extend(rows.filter_map(|r| r.ok()));
-        }
-    }
     ApiResult::ok(results)
 }

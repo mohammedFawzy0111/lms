@@ -5,7 +5,7 @@ import { Page } from "../components/ui/Page";
 import { Tabs, Tab } from "../components/ui/Tabs";
 import { invoke } from "@tauri-apps/api/core";
 import { useAuthStore } from "../stores/authStore";
-import { useEffect, useState, useCallback, SetStateAction } from "react";
+import { useEffect, useState, useCallback, SetStateAction, useRef } from "react";
 
 interface Category {
   id: string;
@@ -102,7 +102,10 @@ export default function Investigations() {
     Profile | null | "new"
   >(null);
 
+  const lastArgs = useRef<{ cat: string | null; q: string }>({ cat: null, q: "" });
+  
   const loadItems = useCallback(async (cat: string | null, q: string) => {
+    lastArgs.current = { cat, q };
     setLoading(true);
     setError(null);
     try {
@@ -184,7 +187,7 @@ export default function Investigations() {
           actorId={currentUser?.id ?? ""}
           onClose={() => setShowForm(null)}
           onSaved={() => {
-            loadItems(null, "");
+            loadItems(lastArgs.current.cat, lastArgs.current.q);
             loadCategories();
           }}
         />
@@ -267,7 +270,7 @@ function IndividualTests({
           categoriesLabels={Object.fromEntries(
             categories.map((c) => [c.id, c.name]),
           )}
-          onSelect={setActiveCat}
+          onSelect={(v) => setActiveCat(v || null)}
         />
         <input
           className="field__input search"
