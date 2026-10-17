@@ -1,0 +1,7 @@
+ui, Frontend look, CSS and components
+refactor, Restructuring without changing behaviour
+bug, Something is broken
+db, SQLite schema, migrations, search
+release, Needed before shipping to a real lab
+page, A single page pass
+polish, Nice to have
