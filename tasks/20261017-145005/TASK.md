@@ -1,6 +1,6 @@
 # Refactor Requests page
 
-- STATUS: OPEN
+- STATUS: CLOSED
 - PRIORITY: 70
 - TAGS: page,ui,refactor
 

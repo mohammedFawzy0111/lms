@@ -242,6 +242,7 @@ select.field__input option {
   color: var(--accent);
   font-size: 11px;
   font-weight: 500;
+  white-space: nowrap;
 }
 
 .role-badge {
@@ -341,6 +342,7 @@ select.field__input option {
 /* ── Tables ──────────────────────────────────────────────────────────────── */
 
 .table-wrap {
+  container-type: inline-size;
   flex: 1;
   min-height: 0;
   overflow: auto;
@@ -439,6 +441,12 @@ select.field__input option {
 }
 
 /* checkbox column (Requests) */
+/* secondary column that gives way when the table gets narrow (small window) */
+@container (max-width: 900px) {
+  .col-hide-sm { display: none; }
+  .table th, .table td { padding-inline: 10px; }
+}
+
 .table .col-check {
   width: 44px;
   padding-right: 0;
@@ -551,3 +559,87 @@ select.field__input option {
 }
 
 .capitalize { text-transform: capitalize; }
+
+.nowrap {
+  white-space: nowrap;
+}
+
+/* Label on the left, control on the right (e.g. picker heading + view switch) */
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+}
+
+.grow {
+  flex: 1;
+}
+
+/* two-line table cell: main text over a small mono id */
+.cell-stack {
+  display: flex;
+  flex-direction: column;
+  white-space: nowrap;
+}
+.cell-id {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.test-picker__empty {
+  padding: var(--sp-3);
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* ── Segmented switch ── */
+.segmented {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  background: var(--bg-overlay);
+  border-radius: var(--r-md);
+}
+.segmented__item {
+  height: 28px;
+  padding: 0 var(--sp-3);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  transition:
+    background var(--t-fast),
+    color var(--t-fast);
+}
+.segmented__item:hover {
+  color: var(--text-primary);
+}
+.segmented__item--active,
+.segmented__item--active:hover {
+  color: var(--text-primary);
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ── Read-only label/value pair ── */
+.detail-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+}
+.detail-field__label {
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.detail-field__value {
+  font-size: 13px;
+  color: var(--text-primary);
+}

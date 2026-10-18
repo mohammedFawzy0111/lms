@@ -1,6 +1,6 @@
 # Verify debug-only DB wipe and release keeps data
 
-- STATUS: OPEN
+- STATUS: CLOSED
 - PRIORITY: 75
 - TAGS: db
 
