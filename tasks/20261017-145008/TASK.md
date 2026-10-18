@@ -1,6 +1,6 @@
 # Refactor Settings page
 
-- STATUS: OPEN
+- STATUS: CLOSED
 - PRIORITY: 40
 - TAGS: page,ui,refactor
 

@@ -646,3 +646,37 @@ select.field__input option {
   font-size: 13px;
   color: var(--text-primary);
 }
+
+/* ── Card ── */
+.card {
+  padding: var(--sp-5);
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  transition: background var(--t-normal), border-color var(--t-normal);
+}
+.card__header {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin: 0 0 var(--sp-4);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.card__icon {
+  display: inline-flex;
+  color: var(--accent);
+}
+
+/* ── Notice (success variant of .error) ── */
+.notice {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+.error--success {
+  color: var(--success);
+  background: var(--success-dim);
+  border-color: var(--success);
+}

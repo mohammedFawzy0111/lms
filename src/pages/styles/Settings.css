@@ -1,50 +1,70 @@
 .settings-body {
-  display:        flex;
-  flex-direction: column;
-  gap:            var(--sp-6);
-  overflow-y:     auto;
-  flex:           1;
-}
-
-.settings-section {
-  background:    var(--bg-surface);
-  border:        1px solid var(--border);
-  border-radius: var(--r-lg);
-  padding:       var(--sp-5);
-  transition:    background var(--t-normal), border-color var(--t-normal);
-}
-.settings-section__title {
-  font-size:     13px;
-  font-weight:   600;
-  color:         var(--text-secondary);
-  margin-bottom: var(--sp-4);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  transition:    color var(--t-normal);
-}
-
-.settings-grid {
-  display:               grid;
-  grid-template-columns: 1fr 1fr;
-  gap:                   var(--sp-4);
-}
-
-/* Reuse .field from Login.css */
-
-.theme-toggle {
   display: flex;
-  gap:     var(--sp-3);
+  flex-direction: column;
+  gap: var(--sp-5);
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
 }
-.theme-btn {
-  padding:       var(--sp-2) var(--sp-5);
-  border-radius: var(--r-md);
-  border:        1px solid var(--border-strong);
-  background:    var(--bg-elevated);
-  color:         var(--text-secondary);
-  font-family:   var(--font-sans);
-  font-size:     13px;
-  cursor:        pointer;
-  transition:    all var(--t-fast);
+
+/* Two columns of fields; `Field span={2}` spans the full row. */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-4);
 }
-.theme-btn:hover       { background: var(--bg-overlay); color: var(--text-primary); }
-.theme-btn--active     { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+
+.backup-list {
+  flex: none;
+  max-height: 260px;
+}
+
+/* ── Theme picker ── */
+.theme-options {
+  display: flex;
+  gap: var(--sp-3);
+}
+.theme-card {
+  width: 120px;
+  padding: 0;
+  overflow: hidden;
+  cursor: pointer;
+  background: none;
+  border: 2px solid var(--border);
+  border-radius: var(--r-lg);
+  transition: border-color var(--t-fast);
+}
+.theme-card--active {
+  border-color: var(--accent);
+}
+.theme-card__preview {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 68px;
+  padding: 8px;
+}
+/* Fixed colours on purpose: each preview shows its own theme, whatever is active now. */
+.theme-card__preview--dark  { background: #111a2e; }
+.theme-card__preview--light { background: #f0f4f8; }
+.theme-card__preview i {
+  flex: 1;
+  border-radius: 3px 3px 0 0;
+}
+.theme-card__preview--dark i  { background: rgba(99, 202, 255, 0.3); }
+.theme-card__preview--light i { background: rgba(0, 102, 204, 0.2); }
+.theme-card__preview i:nth-child(1) { height: 40%; }
+.theme-card__preview i:nth-child(2) { height: 60%; }
+.theme-card__preview i:nth-child(3) { height: 45%; }
+.theme-card__preview i:nth-child(4) { height: 55%; }
+.theme-card__label {
+  padding: 6px 8px;
+  font-size: 12px;
+  text-align: left;
+  color: var(--text-secondary);
+  background: var(--bg-surface);
+}
+.theme-card--active .theme-card__label {
+  font-weight: 600;
+  color: var(--accent);
+}
