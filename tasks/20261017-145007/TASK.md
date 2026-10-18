@@ -1,6 +1,6 @@
 # Refactor Patients page
 
-- STATUS: OPEN
+- STATUS: CLOSED
 - PRIORITY: 50
 - TAGS: page,ui,refactor
 

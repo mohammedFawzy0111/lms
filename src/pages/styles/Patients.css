@@ -22,8 +22,13 @@
 .detail-tabs {
   display: flex;
   gap: var(--sp-2);
-  padding: 0 var(--sp-6);
+  margin-bottom: var(--sp-4);
   border-bottom: 1px solid var(--border);
+}
+
+.dupe-warning__hint {
+  margin: 4px 0 8px;
+  color: var(--text-secondary);
 }
 
 .detail-tab {

@@ -633,6 +633,9 @@ select.field__input option {
   flex-direction: column;
   gap: var(--sp-1);
 }
+.detail-field--full {
+  grid-column: 1 / -1;
+}
 .detail-field__label {
   font-size: 11px;
   letter-spacing: 0.05em;
