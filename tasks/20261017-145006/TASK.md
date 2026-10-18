@@ -1,6 +1,6 @@
 # Refactor Billing page
 
-- STATUS: OPEN
+- STATUS: CLOSED
 - PRIORITY: 60
 - TAGS: page,ui,refactor
 

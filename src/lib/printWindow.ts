@@ -13,3 +13,17 @@ export function openReportWindow(requestId: string) {
   });
   win.once("tauri://error", (e) => console.error("Print window error:", e));
 }
+
+/** Opens the printable receipt for a payment in its own window. */
+export function openReceiptWindow(paymentId: string) {
+  const win = new WebviewWindow(`receipt_${paymentId.slice(0, 8)}`, {
+    url: `/#/receipt/${paymentId}`,
+    title: "Print Receipt",
+    width: 420,
+    height: 640,
+    center: true,
+    decorations: true,
+    resizable: true,
+  });
+  win.once("tauri://error", (e) => console.error("Receipt window error:", e));
+}
