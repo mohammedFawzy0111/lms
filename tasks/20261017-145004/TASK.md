@@ -1,6 +1,6 @@
 # Refactor Investigations page
 
-- STATUS: OPEN
+- STATUS: CLOSED
 - PRIORITY: 80
 - TAGS: page,ui,refactor
 
