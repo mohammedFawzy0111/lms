@@ -1,6 +1,6 @@
 # Refactor Dashboard page
 
-- STATUS: OPEN
+- STATUS: CLOSED
 - PRIORITY: 10
 - TAGS: page,ui,refactor
 

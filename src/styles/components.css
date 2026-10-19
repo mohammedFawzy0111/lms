@@ -655,11 +655,18 @@ select.field__input option {
   border-radius: var(--r-lg);
   transition: background var(--t-normal), border-color var(--t-normal);
 }
+.card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-4);
+}
 .card__header {
   display: flex;
   align-items: center;
   gap: var(--sp-2);
-  margin: 0 0 var(--sp-4);
+  margin: 0;
   font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
@@ -679,4 +686,19 @@ select.field__input option {
   color: var(--success);
   background: var(--success-dim);
   border-color: var(--success);
+}
+
+/* ── Text-style button (links inside cards) ── */
+.link-btn {
+  padding: 0;
+  font: inherit;
+  font-size: 12px;
+  color: var(--accent);
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+.link-btn:hover {
+  color: var(--accent-hover);
+  text-decoration: underline;
 }
