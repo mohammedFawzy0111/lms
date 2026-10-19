@@ -1,0 +1,5 @@
+/* .role-badge itself lives in components.css; only the per-role colours are here. */
+.role-badge--admin        { color: var(--accent); }
+.role-badge--technician   { color: var(--info); }
+.role-badge--receptionist { color: var(--warning); }
+.role-badge--readonly     { color: var(--text-muted); }
