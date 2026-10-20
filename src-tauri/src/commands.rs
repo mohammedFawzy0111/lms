@@ -453,14 +453,14 @@ pub fn cmd_list_investigations(
     state: State<AppState>,
     category_id: Option<String>,
     search: Option<String>,
-    inclue_inactive: Option<bool>,
+    include_inactive: Option<bool>,
 ) -> ApiResult<Vec<Investigation>> {
     let conn = state.db.lock().unwrap();
     match investigations::list_investigations(
         &conn,
         category_id.as_deref(),
         search.as_deref(),
-        inclue_inactive.unwrap_or(false),
+        include_inactive.unwrap_or(false),
     ) {
         Ok(list) => ApiResult::ok(list),
         Err(e) => ApiResult::err(e.to_string()),
@@ -672,10 +672,10 @@ pub fn cmd_get_request_results(
 pub fn cmd_save_result(
     state: State<AppState>,
     actor_id: String,
-    entery: SaveResult,
+    entry: SaveResult,
 ) -> ApiResult<bool> {
     let conn = state.db.lock().unwrap();
-    match results::save_result(&conn, entery, &actor_id) {
+    match results::save_result(&conn, entry, &actor_id) {
         Ok(_) => ApiResult::ok(true),
         Err(e) => ApiResult::err(e.to_string()),
     }
@@ -871,12 +871,12 @@ pub fn cmd_get_dashboard_stats(state: State<AppState>) -> ApiResult<DashboardSta
     // Single query with 6 scalar subqueries — one round-trip instead of 6.
     match conn.query_row(
         "SELECT
-            (SELECT COUNT(*) FROM patients WHERE date(created_at) = date('now')) AS today_patients,
-            (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE date(paid_at) = date('now')) AS today_revenue,
+            (SELECT COUNT(*) FROM patients WHERE date(created_at,'localtime') = date('now','localtime')) AS today_patients,
+            (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE date(paid_at,'localtime') = date('now','localtime')) AS today_revenue,
             (SELECT COUNT(*) FROM lab_request_items WHERE status NOT IN ('completed', 'delivered', 'cancelled')) AS pending_investigation,
-            (SELECT COUNT(*) FROM lab_request_items WHERE status = 'completed' AND date(created_at) = date('now')) AS completed_today,
-            (SELECT COUNT(*) FROM patients WHERE strftime('%Y-%m', created_at) = strftime('%Y-%m', 'now')) AS monthly_patients,
-            (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE strftime('%Y-%m', paid_at) = strftime('%Y-%m', 'now')) AS monthly_revenue
+            (SELECT COUNT(*) FROM results WHERE is_draft = 0 AND date(updated_at,'localtime') = date('now','localtime')) AS completed_today,
+            (SELECT COUNT(*) FROM patients WHERE strftime('%Y-%m', created_at,'localtime') = strftime('%Y-%m', 'now','localtime')) AS monthly_patients,
+            (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE strftime('%Y-%m', paid_at,'localtime') = strftime('%Y-%m', 'now','localtime')) AS monthly_revenue
         ",
         [],
         |r| {

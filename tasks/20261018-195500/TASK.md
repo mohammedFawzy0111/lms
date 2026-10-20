@@ -1,6 +1,6 @@
 # Save age_override when creating a patient
 
-- STATUS: OPEN
+- STATUS: CLOSED
 - PRIORITY: 85
 - TAGS: bug,backend
 

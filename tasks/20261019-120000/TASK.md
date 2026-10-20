@@ -1,6 +1,6 @@
 # Fix dashboard stat queries (completed today, day boundary)
 
-- STATUS: OPEN
+- STATUS: CLOSED
 - PRIORITY: 60
 - TAGS: bug,backend
 

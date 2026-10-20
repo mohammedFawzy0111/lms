@@ -129,14 +129,15 @@ pub fn create_patient(conn: &Connection, p: NewPatient, actor_id: &str) -> Resul
     let patient_no = next_patient_no(conn)?;
 
     conn.execute(
-        "INSERT INTO patients (id, patient_no, full_name, date_of_birth, gender,
+        "INSERT INTO patients (id, patient_no, full_name, date_of_birth, age_override, gender,
     phone, address, email, referring_physician, notes, created_by) VALUES
-    (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11)",
+    (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12)",
         params![
             id,
             patient_no,
             p.full_name,
             p.date_of_birth,
+            p.age_override,
             p.gender,
             p.phone,
             p.address,

@@ -444,7 +444,7 @@ pub fn save_result(conn: &Connection, entry: SaveResult, actor_id: &str) -> Resu
 pub fn finalize_all_results(conn: &Connection, request_id: &str, actor_id: &str) -> Result<()> {
     conn.execute(
         "UPDATE results SET is_draft = 0, updated_at = datetime('now')
-         WHERE request_item_id IN (
+         WHERE is_draft = 1 AND request_item_id IN (
              SELECT id FROM lab_request_items WHERE request_id = ?1
          )",
         params![request_id],

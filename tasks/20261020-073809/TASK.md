@@ -1,6 +1,6 @@
 # fix finalizing results error
 
-- STATUS: OPEN
+- STATUS: CLOSED
 - PRIORITY: 100
 - TAGS: error,command,db
 
