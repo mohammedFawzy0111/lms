@@ -1,3 +1,4 @@
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 
 /** Opens the print preview for a request's report in its own window. */
@@ -26,4 +27,13 @@ export function openReceiptWindow(paymentId: string) {
     resizable: true,
   });
   win.once("tauri://error", (e) => console.error("Receipt window error:", e));
+}
+
+/** Close the window this code runs in (used by the Close button of print windows). */
+export async function closeThisWindow() {
+  try {
+    await getCurrentWindow().close();
+  } catch {
+    window.close();
+  }
 }

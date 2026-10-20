@@ -1,6 +1,6 @@
 # Print pages: keep white-paper styling, clean up
 
-- STATUS: OPEN
+- STATUS: CLOSED
 - PRIORITY: 5
 - TAGS: page,ui,refactor
 

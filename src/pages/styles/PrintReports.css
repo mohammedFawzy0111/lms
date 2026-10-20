@@ -1,204 +1,231 @@
-/* ═══════════════════════════════════════
-   Print Report — Clinical Table Layout
-   ═══════════════════════════════════════ */
+/* Laboratory report. Colours are deliberate: black ink, one navy accent, and very light
+   tints for abnormal rows that still read as bold text with arrows on a mono printer. */
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
-
-body {
-  font-family: Arial, Helvetica, sans-serif;
-  font-size:   12px;
-  background:  #d8d8d8;
-  color:       #000000;
+.rp {
+  --high: #b42318;
+  --high-bg: #fff3f1;
+  --low: #1d4ed8;
+  --low-bg: #eff5ff;
+  --crit: #9b1c13;
+  --crit-bg: #fde4e1;
+  color: var(--p-ink);
 }
 
-.print-loading {
-  display:         flex;
-  align-items:     center;
-  justify-content: center;
-  height:          100vh;
-  font-size:       16px;
-  color:           #333;
-}
-
-.print-shell { min-height: 100vh; background: #d8d8d8; }
-
-/* ── Toolbar ── */
-.print-toolbar {
-  position:        sticky;
-  top:             0;
-  z-index:         100;
-  background:      #1a1a1a;
-  padding:         12px 24px;
-  display:         flex;
-  align-items:     center;
-  justify-content: space-between;
-  box-shadow:      0 2px 8px rgba(0,0,0,0.3);
-}
-.print-toolbar__title { font-weight: 600; font-size: 14px; color: #fff; }
-.print-toolbar__req   { font-size: 12px; color: #999; margin-left: 10px; }
-
-.print-mode-switch { display: flex; gap: 4px; background: #2a2a2a; padding: 3px; border-radius: 8px; }
-.print-mode-btn {
-  padding: 6px 14px; border-radius: 6px; border: none; background: transparent;
-  color: #aaa; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.15s ease;
-}
-.print-mode-btn--active { background: #fff; color: #111; }
-
-.print-toolbar__actions { display: flex; gap: 10px; }
-.print-btn {
-  padding: 8px 18px; border-radius: 6px; border: none; background: #2563eb;
-  color: white; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.15s ease;
-}
-.print-btn:hover { background: #1d4ed8; }
-.print-btn--secondary { background: #444; }
-.print-btn--secondary:hover { background: #333; }
-
-/* ── Page ── */
-.print-page {
-  width:      210mm;
-  min-height: 297mm;
-  margin:     24px auto;
-  background: #ffffff;
-  padding:    16mm 14mm;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.2);
-  color:      #000000;
-}
-.print-page--template { padding-top: 42mm; padding-bottom: 42mm; }
-
-/* ── Title header ── */
-.print-title {
-  text-align:     center;
-  font-size:      22px;
-  font-weight:    800;
-  letter-spacing: 0.02em;
-  padding-bottom: 3mm;
-  border-bottom:  2.5px solid #000;
-  margin-bottom:  4mm;
-}
-
-/* ── Lab info block ── */
-.print-lab-block {
-  text-align:     center;
-  padding-bottom: 4mm;
-  border-bottom:  2px solid #000;
-  margin-bottom:  4mm;
-}
-.print-lab-block__name { font-size: 15px; font-weight: 700; margin-bottom: 2px; }
-.print-lab-block p     { font-size: 11px; color: #333; line-height: 1.5; }
-
-/* ── Patient info grid (shaded box) ── */
-.print-info-box {
-  border:        1.5px solid #000;
-  margin-bottom: 4mm;
-}
-.print-info-row {
-  display:              grid;
-  grid-template-columns: 1fr 1fr;
-  border-bottom:        1px solid #000;
-}
-.print-info-row:last-child { border-bottom: none; }
-
-.print-info-cell {
-  display:               grid;
-  grid-template-columns: 42% 58%;
-  padding:               2.2mm 3mm;
-  border-right:          1px solid #000;
-}
-.print-info-cell:last-child { border-right: none; }
-.print-info-cell--shaded { background: #f0f0f0; }
-
-.print-info-label { font-size: 11px; font-weight: 700; color: #000; }
-.print-info-value { font-size: 11px; color: #000; }
-
-/* Some rows only have one cell spanning full width (e.g. patient name) */
-.print-info-row--single .print-info-cell { grid-column: 1 / -1; }
-
-/* ── Section / department header ── */
-.print-section-header {
-  background:     #e5e5e5;
-  border:         1.5px solid #000;
-  border-bottom:  none;
-  padding:        2mm 3mm;
-  font-size:      11.5px;
-  font-weight:    700;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  margin-top:     3mm;
-}
-.print-section-header:first-of-type { margin-top: 0; }
-
-/* ── Results table ── */
-.print-results-table {
-  width:           100%;
+.rp-flow {
+  width: 100%;
   border-collapse: collapse;
-  margin-bottom:   1mm;
 }
-.print-results-table th {
-  border:         1.5px solid #000;
-  border-top:     none;
-  padding:        1.8mm 3mm;
-  text-align:     left;
-  font-size:      10.5px;
-  font-weight:    700;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  background:     #ffffff;
+.rp-flow td {
+  padding: 0;
+  vertical-align: top;
 }
-.print-results-table td {
-  border-left:  1.5px solid #000;
-  border-right: 1.5px solid #000;
-  border-bottom: 1px solid #ccc;
-  padding:      1.8mm 3mm;
-  font-size:    11.5px;
+/* Preprinted paper: show where the text will land inside your margins (screen only). */
+.rp--template .rp-flow {
+  outline: 1px dashed var(--p-line-strong);
 }
-.print-results-table tbody tr:last-child td { border-bottom: 1.5px solid #000; }
-
-.print-results-table tr.abnormal td { font-weight: 700; }
-.print-flag-cell { font-weight: 700; font-size: 10.5px; }
-
-/* ── Notes ── */
-.print-notes {
-  margin-top:    4mm;
-  padding:       2.5mm 0;
-}
-.print-notes__title { font-size: 12px; font-weight: 700; margin-bottom: 1.5mm; }
-.print-notes p { font-size: 11px; color: #222; margin-left: 3mm; line-height: 1.6; }
-
-/* ── Signatures ── */
-.print-signatures {
-  display:               grid;
-  grid-template-columns: 1fr 1fr;
-  gap:                   20mm;
-  margin-top:            14mm;
-}
-.print-sig__line {
-  border-bottom: 1px solid #000;
-  height:        8mm;
-}
-.print-sig__label { font-size: 11px; margin-top: 1.5mm; }
-.print-sig__role  { font-size: 10px; color: #555; text-align: right; margin-top: 1mm; }
-
-/* ── Footer ── */
-.print-footer {
-  display:         flex;
-  justify-content: space-between;
-  margin-top:      6mm;
-  padding-top:     2.5mm;
-  border-top:      1px solid #000;
-  font-size:       10px;
-  color:           #333;
-}
-
-/* ── Print media ── */
 @media print {
-  body { background: white; }
-  .no-print { display: none !important; }
-  .print-shell { background: white; }
-  .print-page {
-    width: 100%; margin: 0; padding: 10mm 14mm;
-    box-shadow: none; min-height: unset;
-  }
-  .print-page--template { padding-top: 42mm; padding-bottom: 42mm; }
-  @page { size: A4; margin: 0; }
+  .rp--template .rp-flow { outline: none; }
 }
 
+/* ── Letterhead ── */
+.rp-letterhead {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12mm;
+  padding-bottom: 4mm;
+  margin-bottom: 6mm;
+  border-bottom: 2px solid var(--p-accent);
+}
+.rp-letterhead__name {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--p-accent);
+}
+.rp-letterhead__contact {
+  font-size: 11px;
+  line-height: 1.5;
+  text-align: right;
+  color: var(--p-ink-2);
+}
+
+/* ── Title and patient details ── */
+.rp-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 3mm;
+}
+.rp-heading__title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+.rp-status {
+  padding: 0.6mm 3mm;
+  font-size: 11px;
+  font-weight: 700;
+  border: 1px solid;
+  border-radius: 999px;
+}
+.rp-status--final {
+  color: #166534;
+  background: #ecfdf3;
+  border-color: #a7e3bf;
+}
+.rp-status--preliminary {
+  color: #92400e;
+  background: #fff7e6;
+  border-color: #f3d38a;
+}
+
+.rp-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 10mm;
+  margin: 0 0 5mm;
+  padding: 2.5mm 0;
+  border-top: 1px solid var(--p-line);
+  border-bottom: 1px solid var(--p-line);
+}
+.rp-meta__row {
+  display: flex;
+  gap: 3mm;
+  padding: 0.8mm 0;
+}
+.rp-meta dt {
+  flex: 0 0 27mm;
+  color: var(--p-ink-2);
+}
+.rp-meta dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+.rp-banner {
+  margin: 0 0 4mm;
+  padding: 2mm 3mm;
+  font-size: 11px;
+  color: #92400e;
+  background: #fff7e6;
+  border-left: 3px solid #e0a526;
+}
+
+/* ── Results ── */
+.rp-group {
+  margin-bottom: 5mm;
+}
+.rp-group__title {
+  margin: 0 0 1.5mm;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--p-accent);
+  break-after: avoid;
+}
+.rp-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+.rp-table thead {
+  display: table-header-group;
+}
+.rp-table th {
+  padding: 1.8mm 3mm;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-align: left;
+  color: #374151;
+  background: #eef2f7;
+  border-top: 1px solid var(--p-line-strong);
+  border-bottom: 1px solid var(--p-line-strong);
+}
+.rp-table td {
+  padding: 2.1mm 3mm;
+  font-size: 12px;
+  vertical-align: middle;
+  border-bottom: 1px solid #e3e7ed;
+}
+.rp-table tr {
+  break-inside: avoid;
+}
+.rp-col-test   { width: 33%; }
+.rp-col-result { width: 13%; }
+.rp-col-flag   { width: 21%; }
+.rp-col-unit   { width: 10%; }
+.rp-col-ref    { width: 23%; }
+
+.rp-result {
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.rp-result--pending {
+  font-size: 12px;
+  font-style: italic;
+  font-weight: 400;
+  color: var(--p-ink-3);
+}
+.rp-prelim {
+  color: #92400e;
+}
+.rp-flag {
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.rp-muted {
+  color: var(--p-ink-2);
+}
+
+.rp-row--high td     { background: var(--high-bg); }
+.rp-row--high .rp-result,
+.rp-row--high .rp-flag { color: var(--high); }
+.rp-row--low td      { background: var(--low-bg); }
+.rp-row--low .rp-result,
+.rp-row--low .rp-flag  { color: var(--low); }
+.rp-row--critical td { background: var(--crit-bg); }
+.rp-row--critical .rp-result,
+.rp-row--critical .rp-flag { color: var(--crit); }
+
+/* ── Notes, signatures, running footer ── */
+.rp-notes {
+  margin-top: 4mm;
+  padding: 2.5mm 4mm;
+  background: #f7f9fc;
+  border-left: 3px solid var(--p-accent);
+  break-inside: avoid;
+}
+.rp-notes__title {
+  margin: 0 0 1mm;
+  font-size: 12px;
+  font-weight: 700;
+}
+.rp-notes ul {
+  margin: 0;
+  padding-left: 4mm;
+  font-size: 11px;
+  color: #1f2937;
+}
+
+.rp-signatures {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20mm;
+  margin-top: 16mm;
+  font-size: 11px;
+  break-inside: avoid;
+}
+.rp-signatures__line {
+  height: 10mm;
+  margin-bottom: 1.5mm;
+  border-bottom: 1px solid var(--p-ink);
+}
+
+.rp-flow tfoot td.rp-runfoot {
+  padding-top: 7mm;
+  font-size: 10px;
+  color: var(--p-ink-3);
+  background: linear-gradient(var(--p-line), var(--p-line)) top 4mm left / 100% 1px no-repeat;
+}

@@ -16,13 +16,17 @@ export function fileSize(bytes: number): string {
 }
 
 /**
- * "just now", "5m ago", "3h ago", then a date. SQLite's datetime('now') is UTC without a
- * zone marker, so it is parsed as UTC; otherwise "just now" would read as hours ago for
- * anyone east of Greenwich.
+ * SQLite's datetime('now') is UTC without a zone marker. Parse it as UTC so it can be shown
+ * in the user's local time (and so "just now" doesn't read as hours ago east of Greenwich).
  */
-export function timeAgo(ts: string): string {
+export function parseUtc(ts: string): Date {
   const iso = ts.includes("T") ? ts : ts.replace(" ", "T");
-  const d = new Date(/[zZ]|[+-]\d\d:?\d\d$/.test(iso) ? iso : `${iso}Z`);
+  return new Date(/[zZ]|[+-]\d\d:?\d\d$/.test(iso) ? iso : `${iso}Z`);
+}
+
+/** "just now", "5m ago", "3h ago", then a date. */
+export function timeAgo(ts: string): string {
+  const d = parseUtc(ts);
   if (isNaN(d.getTime())) return ts;
   const min = Math.floor((Date.now() - d.getTime()) / 60000);
   if (min < 1) return "just now";
@@ -30,4 +34,11 @@ export function timeAgo(ts: string): string {
   const hr = Math.floor(min / 60);
   if (hr < 24) return `${hr}h ago`;
   return d.toLocaleDateString();
+}
+
+/** A stored UTC timestamp as local "19 Oct 2026, 13:05". */
+export function formatDateTime(ts: string): string {
+  const d = parseUtc(ts);
+  if (isNaN(d.getTime())) return ts;
+  return d.toLocaleString("en-GB", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
 }

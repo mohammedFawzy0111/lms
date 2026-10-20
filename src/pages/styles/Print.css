@@ -1,0 +1,217 @@
+/* ════════════════════════════════════════════════════════════════════
+   Print windows: shared chrome. Everything is scoped to .print-root and uses
+   fixed colours on purpose: paper is white whatever theme the app is in.
+   ════════════════════════════════════════════════════════════════════ */
+
+.print-root {
+  --p-ink: #111827;
+  --p-ink-2: #4b5563;
+  --p-ink-3: #6b7280;
+  --p-line: #d9dee5;
+  --p-line-strong: #c5ccd6;
+  --p-accent: #1f4e79;
+  --desk: #f7f8fa;
+
+  /* Covers the window by itself, so the app's own body styles (dark theme, overflow hidden)
+     never show through or stop the page from scrolling. */
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #fff;
+  color: var(--p-ink);
+  font-family: "Segoe UI", "Helvetica Neue", Arial, "Liberation Sans", sans-serif;
+  font-size: 12px;
+  line-height: 1.45;
+}
+.print-root *,
+.print-root *::before,
+.print-root *::after {
+  box-sizing: border-box;
+}
+.print-message {
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  color: var(--p-ink-2);
+}
+
+/* ── Toolbar ── */
+.print-toolbar {
+  flex-shrink: 0;
+  background: #fff;
+  border-bottom: 1px solid var(--p-line);
+}
+.print-toolbar__row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 20px;
+}
+.print-toolbar__row--extra {
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-top: 0;
+  font-size: 12px;
+  color: var(--p-ink-2);
+}
+.print-toolbar__title {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-right: auto;
+}
+.print-toolbar__title strong {
+  font-size: 14px;
+}
+.print-toolbar__title span {
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font-size: 12px;
+  color: var(--p-ink-3);
+}
+.print-toolbar__actions {
+  display: flex;
+  gap: 8px;
+}
+
+.print-btn {
+  height: 34px;
+  padding: 0 14px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--p-ink);
+  background: #fff;
+  border: 1px solid var(--p-line-strong);
+  border-radius: 6px;
+  cursor: pointer;
+}
+.print-btn:hover {
+  background: #f3f5f8;
+}
+.print-btn--primary {
+  color: #fff;
+  background: var(--p-accent);
+  border-color: var(--p-accent);
+}
+.print-btn--primary:hover {
+  background: #173d5f;
+}
+.print-btn--small {
+  height: 28px;
+  padding: 0 10px;
+  font-size: 12px;
+}
+.print-btn:focus-visible,
+.print-switch__btn:focus-visible,
+.print-margin input:focus-visible {
+  outline: 2px solid var(--p-accent);
+  outline-offset: 2px;
+}
+
+.print-switch {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--p-line-strong);
+  border-radius: 8px;
+}
+.print-switch__btn {
+  height: 28px;
+  padding: 0 14px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--p-ink-2);
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.print-switch__btn--on {
+  color: #fff;
+  background: var(--p-accent);
+}
+
+.print-hint {
+  margin-right: 4px;
+}
+.print-margin {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.print-margin input {
+  width: 58px;
+  height: 28px;
+  padding: 0 6px;
+  font: inherit;
+  font-size: 12px;
+  color: var(--p-ink);
+  background: #fff;
+  border: 1px solid var(--p-line-strong);
+  border-radius: 6px;
+}
+
+/* ── Desk and sheet ── */
+.print-desk {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 24px;
+  background: var(--desk);
+}
+.sheet {
+  width: 210mm;
+  min-height: 297mm;
+  margin: 0 auto;
+  padding: var(--m-top, 0) var(--m-right, 0) var(--m-bottom, 0) var(--m-left, 0);
+  background: #fff;
+  border: 1px solid var(--p-line);
+  box-shadow: 0 2px 14px rgba(17, 24, 39, 0.08);
+}
+/* Several reports in one window: each sheet starts a new page. */
+.sheet + .sheet {
+  margin-top: 24px;
+  break-before: page;
+}
+
+@media print {
+  html,
+  body,
+  #root {
+    display: block !important;
+    height: auto !important;
+    overflow: visible !important;
+    background: #fff !important;
+  }
+  .print-root {
+    position: static;
+    display: block;
+    overflow: visible;
+  }
+  .print-desk {
+    padding: 0;
+    overflow: visible;
+    background: #fff;
+  }
+  .sheet {
+    width: auto;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    box-shadow: none;
+  }
+  .sheet + .sheet {
+    margin-top: 0;
+  }
+  .no-print {
+    display: none !important;
+  }
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
