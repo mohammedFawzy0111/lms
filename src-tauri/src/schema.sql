@@ -299,7 +299,10 @@ INSERT INTO receipt_counter (id, value) VALUES (1, 0);
 -- ---------------------------------------------------------------------------
 
 CREATE VIRTUAL TABLE search_index USING fts5(
-  patient_name, patient_no, patient_phone,
-  investigation_name, investigation_code,
-  request_no, invoice_no, receipt_no
+  kind UNINDEXED,
+  ref_id UNINDEXED,
+  title UNINDEXED,
+  subtitle UNINDEXED,
+  body,
+  tokenize = 'unicode61 remove_diacritics 2'
 );

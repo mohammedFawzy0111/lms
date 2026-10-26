@@ -2,6 +2,8 @@ use anyhow::{anyhow, Result};
 use rusqlite::{params, Connection};
 use serde::{Deserialize, Serialize};
 
+use search;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Invoice {
     pub id: String,
@@ -170,6 +172,8 @@ pub fn create_invoice(conn: &Connection, req: NewInvoice, actor_id: &str) -> Res
 
     recompute_status(conn, &id)?;
 
+    search::index_invoice(conn, &id)?;
+
     let _ = conn.execute(
         "INSERT INTO audit_log (user_id, action, entity_type, entity_id)
          VALUES (?1, 'invoice_created', 'invoice', ?2)",
@@ -203,6 +207,8 @@ pub fn update_invoice_adjustments(
     )?;
 
     recompute_status(conn, invoice_id)?;
+
+    search::index_invoice(conn, invoice_id)?;
 
     let _ = conn.execute(
         "INSERT INTO audit_log (user_id, action, entity_type, entity_id)

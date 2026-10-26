@@ -3,6 +3,7 @@ use rusqlite::{params, Connection};
 use serde::{Deserialize, Serialize};
 
 use crate::patients::{self, NewPatient, Patient};
+use search;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LabRequest {
@@ -123,6 +124,8 @@ pub fn create_request(conn: &Connection, req: NewRequest, actor_id: &str) -> Res
     )?;
 
     insert_items(conn, &id, &req.investigation_ids)?;
+
+    let _ = search::index_request(conn, &id)?;
 
     let _ = conn.execute(
         "INSERT INTO audit_log (user_id, action, entity_type, entity_id)
@@ -299,6 +302,9 @@ pub fn update_request_status(
         "UPDATE lab_requests SET status = ?1, updated_at = datetime('now') WHERE id = ?2",
         params![status, id],
     )?;
+
+    let _ = search::index_request(conn, &id)?;
+
     let _ = conn.execute(
         "INSERT INTO audit_log (user_id, action, entity_type, entity_id, details)
          VALUES (?1, 'request_status_changed', 'lab_request', ?2, ?3)",
@@ -320,6 +326,7 @@ pub fn update_item_status(
         "UPDATE lab_request_items SET status = ?1 WHERE id = ?2",
         params![status, item_id],
     )?;
+
     let _ = conn.execute(
         "INSERT INTO audit_log (user_id, action, entity_type, entity_id, details)
          VALUES (?1, 'request_item_status_changed', 'lab_request_item', ?2, ?3)",

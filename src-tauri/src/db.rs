@@ -1,6 +1,7 @@
 use anyhow::{Context, Result};
 use rusqlite::Connection;
 use std::path::Path;
+use crate::search;
 
 #[cfg(debug_assertions)]
 const WIPE_ON_START: bool = true;
@@ -45,21 +46,16 @@ pub fn open_and_migrate(path: &Path) -> Result<Connection> {
     ",
     )?;
 
-    let mut version: u32 = conn.query_row(
-        "SELECT COALESCE(MAX(version), 0) FROM schema_migrations",
-        [],
-        |row| row.get(0),
-    )?;
+    let mut version: u32 =
+        conn.query_row("SELECT COALESCE(MAX(version), 0) FROM schema_migrations", [], |row| {
+            row.get(0)
+        })?;
 
     // Fresh database: apply the baseline schema atomically with its version row.
     if version == 0 {
         let tx = conn.unchecked_transaction()?;
-        tx.execute_batch(SCHEMA)
-            .context("Failed to apply schema.sql")?;
-        tx.execute(
-            "INSERT INTO schema_migrations (version) VALUES (?1)",
-            [BASELINE],
-        )?;
+        tx.execute_batch(SCHEMA).context("Failed to apply schema.sql")?;
+        tx.execute("INSERT INTO schema_migrations (version) VALUES (?1)", [BASELINE])?;
         tx.commit()?;
         version = BASELINE;
     }
@@ -67,11 +63,12 @@ pub fn open_and_migrate(path: &Path) -> Result<Connection> {
     // Incremental migrations, each atomic with its version row.
     for &(v, sql) in MIGRATIONS.iter().filter(|m| m.0 > version) {
         let tx = conn.unchecked_transaction()?;
-        tx.execute_batch(sql)
-            .with_context(|| format!("Migration {v} failed"))?;
+        tx.execute_batch(sql).with_context(|| format!("Migration {v} failed"))?;
         tx.execute("INSERT INTO schema_migrations (version) VALUES (?1)", [v])?;
         tx.commit()?;
     }
+
+    search::rebuild(&conn)?;
 
     Ok(conn)
 }
@@ -82,8 +79,8 @@ fn reset_db_files(path: &Path) -> Result<()> {
         let mut p = path.as_os_str().to_owned();
         p.push(suffix);
         match std::fs::remove_file(&p) {
-            Ok(()) => {}
-            Err(e) if e.kind() == std::io::ErrorKind::NotFound => {}
+            Ok(()) => {},
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => {},
             Err(e) => return Err(e.into()),
         }
     }

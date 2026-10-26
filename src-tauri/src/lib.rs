@@ -9,6 +9,7 @@ mod profiles;
 mod requests;
 mod results;
 mod seed;
+mod search;
 
 use rusqlite::Connection;
 use std::sync::{Arc, Mutex};

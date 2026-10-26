@@ -1,6 +1,7 @@
 use anyhow::{anyhow, Result};
 use rusqlite::{params, Connection};
 use serde::{Deserialize, Serialize};
+use crate::search;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Patient {
@@ -153,6 +154,7 @@ pub fn create_patient(conn: &Connection, p: NewPatient, actor_id: &str) -> Resul
         VALUES (?1, 'patient_created', 'patient', ?2)",
         params![actor_id, id],
     );
+    let _ = search::index_patient(conn, &id)?;
     get_patient(conn, &id)
 }
 
@@ -193,6 +195,8 @@ pub fn update_patient(
         VALUES (?1, 'patient_updated', 'patient', ?2)",
         params![actor_id, id],
     );
+
+    let _ = search::index_patient(conn, &id)?;
 
     get_patient(conn, id)
 }
