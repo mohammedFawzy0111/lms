@@ -225,7 +225,7 @@ pub fn reset_password(
     let user_role: String =
         conn.query_row("SELECT role FROM users WHERE id = ?1", params![user_id], |r| r.get(0))?;
 
-    if actor_role == "admin" {
+    if actor_role != "admin" {
         return Err(anyhow!("only 'Administrator' role can reset other users passwords."));
     }
 
@@ -241,8 +241,8 @@ pub fn reset_password(
     )?;
 
     let _ = conn.execute(
-        "INSERT INTO audit_log (user_id, action) VALUES (?1, 'password_changed')",
-        params![user_id],
+        "INSERT INTO audit_log (user_id, action, entity_type, entity_id) VALUES (?1, 'password_changed', 'user', ?2)",
+        params![actor_id, user_id],
     );
 
     Ok(())
