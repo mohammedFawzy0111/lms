@@ -1,7 +1,7 @@
+use crate::search;
 use anyhow::{Context, Result};
 use rusqlite::Connection;
 use std::path::Path;
-use crate::search;
 
 #[cfg(debug_assertions)]
 const WIPE_ON_START: bool = true;

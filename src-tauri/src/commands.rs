@@ -292,6 +292,20 @@ pub fn cmd_change_password(
 }
 
 #[tauri::command]
+pub fn cmd_reset_password(
+    state: State<AppState>,
+    user_id: String,
+    actor_id: String,
+    new_password: String,
+) -> ApiResult<bool> {
+    let conn = state.db.lock().unwrap();
+    match auth::reset_password(&conn, &user_id, &actor_id, &new_password) {
+        Ok(_) => ApiResult::ok(true),
+        Err(e) => ApiResult::err(e.to_string()),
+    }
+}
+
+#[tauri::command]
 pub fn cmd_create_patient(
     state: State<AppState>,
     patient: NewPatient,
@@ -964,44 +978,36 @@ pub fn cmd_get_pending_results(
 #[tauri::command]
 pub fn cmd_global_search(state: State<AppState>, query: String) -> ApiResult<Vec<SearchResult>> {
     let conn = state.db.lock().unwrap();
-    let q = query.trim();
-    if q.is_empty() {
+
+    let Some(m) = crate::search::to_match(&query) else {
         return ApiResult::ok(vec![]);
-    }
+    };
 
     let mut stmt = match conn.prepare(
-        "SELECT 
-            id,
-            snippet(search_index, 0, '<b>', '</b>', '...',  20) AS title,
-            snippet(search_index, 0, '<b>', '</b>', '...',  30) AS subtitle,
-            CASE
-                WHEN body MATCH '*patient*' THEN 'patient'
-                WHEN body MATCH '*investigation*' THEN 'investigation'
-                WHEN body MATCH '*request*' THEN 'request'
-                WHEN body MATCH '*invoice*' OR body MATCH '*receipt*' THEN 'invoice'
-                ELSE 'other'
-            END AS kind
-        FROM search_index
-        WHERE search_index MATCH ?1
-        ORDER BY rank
-        LIMIT 8",
+        "SELECT kind, ref_id, title, subtitle FROM search_index
+     WHERE search_index MATCH ?1 ORDER BY rank LIMIT 8",
     ) {
         Ok(s) => s,
         Err(e) => return ApiResult::err(e.to_string()),
     };
 
-    let results: Vec<SearchResult> = stmt
-        .query_map(params![q], |row| {
-            Ok(SearchResult {
-                kind: row.get::<_, String>(3)?,
-                id: row.get(0)?,
-                title: row.get(1)?,
-                subtitle: row.get(2)?,
-                extra: row.get::<_, Option<String>>(3)?,
-            })
+    let rows = match stmt.query_map(params![m], |row| {
+        Ok(SearchResult {
+            kind: row.get(0)?,
+            id: row.get(1)?,
+            title: row.get(2)?,
+            subtitle: row.get(3)?,
+            extra: None,
         })
-        .map(|row| row.filter_map(|r| r.ok()).collect())
-        .unwrap_or_default();
+    }) {
+        Ok(r) => r,
+        Err(e) => return ApiResult::err(e.to_string()),
+    };
+
+    let results: Vec<SearchResult> = match rows.collect::<Result<Vec<_>, _>>() {
+        Ok(v) => v,
+        Err(e) => return ApiResult::err(e.to_string()),
+    };
 
     ApiResult::ok(results)
 }

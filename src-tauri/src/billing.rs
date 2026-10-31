@@ -2,7 +2,7 @@ use anyhow::{anyhow, Result};
 use rusqlite::{params, Connection};
 use serde::{Deserialize, Serialize};
 
-use search;
+use crate::search;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Invoice {
@@ -172,7 +172,7 @@ pub fn create_invoice(conn: &Connection, req: NewInvoice, actor_id: &str) -> Res
 
     recompute_status(conn, &id)?;
 
-    search::index_invoice(conn, &id)?;
+    let _ = search::index_invoice(conn, &id);
 
     let _ = conn.execute(
         "INSERT INTO audit_log (user_id, action, entity_type, entity_id)
@@ -208,7 +208,7 @@ pub fn update_invoice_adjustments(
 
     recompute_status(conn, invoice_id)?;
 
-    search::index_invoice(conn, invoice_id)?;
+    let _ = search::index_invoice(conn, invoice_id);
 
     let _ = conn.execute(
         "INSERT INTO audit_log (user_id, action, entity_type, entity_id)
@@ -408,6 +408,8 @@ pub fn record_payment(conn: &Connection, req: NewPayment, actor_id: &str) -> Res
     )?;
 
     recompute_status(conn, &req.invoice_id)?;
+
+    let _ = search::index_invoice(conn, &req.invoice_id);
 
     let _ = conn.execute(
         "INSERT INTO audit_log (user_id, action, entity_type, entity_id, details)

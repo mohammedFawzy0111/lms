@@ -81,5 +81,9 @@ pub fn to_match(input: &str) -> Option<String> {
         .split_whitespace()
         .map(|w| format!("\"{}\"*", w.replace('"', "\"\"")))
         .collect();
-    if parts.is_empty() { None } else { Some(parts.join(" ")) }
+    if parts.is_empty() {
+        None
+    } else {
+        Some(parts.join(" "))
+    }
 }

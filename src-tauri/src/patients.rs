@@ -1,7 +1,7 @@
+use crate::search;
 use anyhow::{anyhow, Result};
 use rusqlite::{params, Connection};
 use serde::{Deserialize, Serialize};
-use crate::search;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Patient {
@@ -154,7 +154,7 @@ pub fn create_patient(conn: &Connection, p: NewPatient, actor_id: &str) -> Resul
         VALUES (?1, 'patient_created', 'patient', ?2)",
         params![actor_id, id],
     );
-    let _ = search::index_patient(conn, &id)?;
+    let _ = search::index_patient(conn, &id);
     get_patient(conn, &id)
 }
 
@@ -196,13 +196,17 @@ pub fn update_patient(
         params![actor_id, id],
     );
 
-    let _ = search::index_patient(conn, &id)?;
+    let _ = search::index_patient(conn, &id);
 
     get_patient(conn, id)
 }
 
 pub fn delete_patient(conn: &Connection, id: &str, actor_id: &str) -> Result<()> {
     conn.execute("DELETE FROM patients WHERE id = ?1", params![id])?;
+
+    let _ = conn
+        .execute("DELETE FROM search_index WHERE kind = 'patient' AND ref_id = ?1", params![id]);
+
     let _ = conn.execute(
         "INSERT INTO audit_log (user_id, action, entity_type, entity_id)
         VALUES (?1, 'patient_deleted', 'patient', ?2)",

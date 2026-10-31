@@ -1,6 +1,6 @@
 # Apply shared UI foundation and smoke-test every page
 
-- STATUS: OPEN
+- STATUS: CLOSED
 - PRIORITY: 90
 - TAGS: ui,refactor
 

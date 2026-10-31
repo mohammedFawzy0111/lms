@@ -8,8 +8,8 @@ mod patients;
 mod profiles;
 mod requests;
 mod results;
-mod seed;
 mod search;
+mod seed;
 
 use rusqlite::Connection;
 use std::sync::{Arc, Mutex};
@@ -131,6 +131,7 @@ pub fn run() {
             commands::cmd_list_users,
             commands::cmd_set_user_active,
             commands::cmd_change_password,
+            commands::cmd_reset_password,
             commands::cmd_create_patient,
             commands::cmd_update_patient,
             commands::cmd_delete_patient,

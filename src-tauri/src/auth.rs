@@ -214,6 +214,40 @@ pub fn set_user_active(
     Ok(())
 }
 
+pub fn reset_password(
+    conn: &Connection,
+    user_id: &str,
+    actor_id: &str,
+    new_password: &str,
+) -> Result<()> {
+    let actor_role: String =
+        conn.query_row("SELECT role FROM users WHERE id = ?1", params![actor_id], |r| r.get(0))?;
+    let user_role: String =
+        conn.query_row("SELECT role FROM users WHERE id = ?1", params![user_id], |r| r.get(0))?;
+
+    if actor_role == "admin" {
+        return Err(anyhow!("only 'Administrator' role can reset other users passwords."));
+    }
+
+    if user_role == "admin" {
+        return Err(anyhow!("cannot reset Administrator's password."));
+    }
+
+    let new_hash = hash_password(new_password)?;
+
+    conn.execute(
+        "UPDATE users SET password_hash = ?1, updated_at = datetime('now') WHERE id = ?2",
+        params![new_hash, user_id],
+    )?;
+
+    let _ = conn.execute(
+        "INSERT INTO audit_log (user_id, action) VALUES (?1, 'password_changed')",
+        params![user_id],
+    );
+
+    Ok(())
+}
+
 pub fn change_password(
     conn: &Connection,
     user_id: &str,

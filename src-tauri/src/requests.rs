@@ -3,7 +3,7 @@ use rusqlite::{params, Connection};
 use serde::{Deserialize, Serialize};
 
 use crate::patients::{self, NewPatient, Patient};
-use search;
+use crate::search;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LabRequest {
@@ -125,7 +125,7 @@ pub fn create_request(conn: &Connection, req: NewRequest, actor_id: &str) -> Res
 
     insert_items(conn, &id, &req.investigation_ids)?;
 
-    let _ = search::index_request(conn, &id)?;
+    let _ = search::index_request(conn, &id);
 
     let _ = conn.execute(
         "INSERT INTO audit_log (user_id, action, entity_type, entity_id)
@@ -303,7 +303,7 @@ pub fn update_request_status(
         params![status, id],
     )?;
 
-    let _ = search::index_request(conn, &id)?;
+    let _ = search::index_request(conn, &id);
 
     let _ = conn.execute(
         "INSERT INTO audit_log (user_id, action, entity_type, entity_id, details)
@@ -337,6 +337,9 @@ pub fn update_item_status(
 
 pub fn delete_request(conn: &Connection, id: &str, actor_id: &str) -> Result<()> {
     conn.execute("DELETE FROM lab_requests WHERE id = ?1", params![id])?;
+
+    let _ = conn
+        .execute("DELETE FROM search_index WHERE kind = 'request' AND ref_id = ?1", params![id]);
     let _ = conn.execute(
         "INSERT INTO audit_log (user_id, action, entity_type, entity_id)
          VALUES (?1, 'request_deleted', 'lab_request', ?2)",

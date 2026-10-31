@@ -1,6 +1,6 @@
 # Populate the search_index FTS5 table
 
-- STATUS: OPEN
+- STATUS: CLOSED
 - PRIORITY: 65
 - TAGS: db
 
