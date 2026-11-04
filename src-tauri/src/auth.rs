@@ -72,6 +72,17 @@ pub fn validate_session(conn: &Connection, session_id: &str) -> Result<User> {
     }
 }
 
+pub fn require_admin(conn: &Connection, actor_id: &str) -> Result<()> {
+    let role: String = conn.query_row("SELECT role FROM users WHERE id = ?1 AND is_active = 1",
+        params![actor_id],
+        |r| r.get(0)).map_err(|_| anyhow!("unknown or disabled user"))?;
+
+    if role != "admin" {
+        return Err(anyhow!("Only an Administrator can do this"));
+    }
+    Ok(())
+}
+
 pub fn hash_password(password: &str) -> Result<String> {
     let salt = SaltString::generate(&mut OsRng);
     let argon2 = Argon2::default();
@@ -184,6 +195,9 @@ pub fn create_user(
     role: &str,
     actor_id: &str,
 ) -> Result<User> {
+
+    require_admin(conn, actor_id)?;
+
     let exists: i64 = conn.query_row(
         "SELECT COUNT(*) FROM users WHERE username = ?1 COLLATE NOCASE",
         params![username],
@@ -248,6 +262,13 @@ pub fn set_user_active(
     active: bool,
     actor_id: &str,
 ) -> Result<()> {
+
+    require_admin(conn, actor_id)?;
+
+    if !active && target_id == actor_id { 
+        return Err(anyhow!("You can't disable your own account")); 
+    }
+
     conn.execute(
         "UPDATE users SET is_active = ?1, updated_at = datetime('now') WHERE id = ?2",
         params![active as i64, target_id],
@@ -276,14 +297,11 @@ pub fn reset_password(
     actor_id: &str,
     new_password: &str,
 ) -> Result<()> {
-    let actor_role: String =
-        conn.query_row("SELECT role FROM users WHERE id = ?1", params![actor_id], |r| r.get(0))?;
+
+    require_admin(conn, actor_id)?;
+
     let user_role: String =
         conn.query_row("SELECT role FROM users WHERE id = ?1", params![user_id], |r| r.get(0))?;
-
-    if actor_role != "admin" {
-        return Err(anyhow!("only 'Administrator' role can reset other users passwords."));
-    }
 
     if user_role == "admin" {
         return Err(anyhow!("cannot reset Administrator's password."));
