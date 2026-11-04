@@ -23,9 +23,24 @@ export default function App() {
   const session = useAuthStore((s) => s.session);
   const loadSettings = useSettingsStore((s) => s.load);
 
+  const validate = useAuthStore((s) => s.validate);
+  const sessionId = session?.id;
+
   useEffect(() => {
     loadSettings();
   }, [loadSettings]);
+
+  // Keep the session honest: check on start, every minute, and when the window regains focus.
+  useEffect(() => {
+    if (!sessionId) return;
+    validate();
+    const timer = setInterval(validate, 60_000);
+    window.addEventListener("focus", validate);
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener("focus", validate);
+    };
+  }, [sessionId, validate]);
 
 
   return (

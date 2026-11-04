@@ -30,6 +30,8 @@ interface AuthState {
   error: string | null;
   login: (username: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  /** Ask the backend if the stored session is still valid; clears it if not. */
+  validate: () => Promise<void>;
   clearError: () => void;
 }
 
@@ -63,6 +65,24 @@ export const useAuthStore = create<AuthState>()(
           } catch { }
         }
         set({ session: null });
+      },
+
+      validate: async () => {
+        const { session } = get();
+        if (!session) return;
+        try {
+          const res = await invoke<ApiResult<User>>("cmd_validate_session", { sessionId: session.id });
+          if (!res.ok || !res.data) {
+            set({ session: null });
+            return;
+          }
+          // Keep the role/name in sync with the database, but only re-render on a real change.
+          if (JSON.stringify(res.data) !== JSON.stringify(session.user)) {
+            set({ session: { ...session, user: res.data } });
+          }
+        } catch {
+          // Backend unreachable: keep the session rather than logging out on a hiccup.
+        }
       },
 
       clearError: () => set({ error: null }),

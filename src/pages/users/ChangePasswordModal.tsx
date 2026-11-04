@@ -4,7 +4,7 @@ import { Modal } from "../../components/ui/Modal";
 import { Notice } from "../../components/ui/Notice";
 import { api, errMsg } from "../../lib/api";
 import { useEnterKeyNav } from "../../hooks/useEnterKeyNav";
-import type { User } from "../../stores/authStore";
+import { useAuthStore, type User } from "../../stores/authStore";
 
 const FORM_ID = "change-password-form";
 
@@ -17,12 +17,17 @@ export function ChangePasswordModal({ user, onClose }: { user: User; onClose: ()
   const [done, setDone] = useState(false);
   const enterKeyProps = useEnterKeyNav();
 
-  // Close shortly after success; the cleanup cancels it if the user closes first.
+  // After success, close shortly. Changing your own password ends your sessions,
+  // so sign out and let the Login page take over. The cleanup cancels the timer if the user closes first.
   useEffect(() => {
     if (!done) return;
-    const t = setTimeout(onClose, 1200);
+    const t = setTimeout(() => {
+      const auth = useAuthStore.getState();
+      if (auth.session?.user.id === user.id) void auth.logout();
+      else onClose();
+    }, 1200);
     return () => clearTimeout(t);
-  }, [done, onClose]);
+  }, [done, onClose, user.id]);
 
   const ready = !!oldPass && !!newPass && !!confirmPass;
 
@@ -60,7 +65,7 @@ export function ChangePasswordModal({ user, onClose }: { user: User; onClose: ()
       }
     >
       {done ? (
-        <Notice tone="success">Password changed successfully</Notice>
+        <Notice tone="success">Password changed. Please sign in again.</Notice>
       ) : (
         <form
           id={FORM_ID}

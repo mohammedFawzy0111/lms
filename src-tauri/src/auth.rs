@@ -27,6 +27,51 @@ pub struct Session {
     pub expires_at: String,
 }
 
+/// How long a login stays valid. Sessions are deleted once they expire.
+const SESSION_HOURS: i64 = 12;
+
+/// Delete every session that has expired or been deactivated.
+pub fn cleanup_sessions(conn: &Connection) -> Result<()> {
+    conn.execute(
+        "DELETE FROM sessions WHERE expires_at <= datetime('now') OR is_active = 0",
+        [],
+    )?;
+    Ok(())
+}
+
+/// Delete all sessions of one user, which logs them out everywhere.
+pub fn revoke_user_sessions(conn: &Connection, user_id: &str) -> Result<()> {
+    conn.execute("DELETE FROM sessions WHERE user_id = ?1", params![user_id])?;
+    Ok(())
+}
+
+/// Check that a session id is still valid and return the user it belongs to.
+/// The role comes from the database, never from what the frontend remembers.
+pub fn validate_session(conn: &Connection, session_id: &str) -> Result<User> {
+    let user = conn.query_row(
+        "SELECT u.id, u.username, u.full_name, u.role, u.is_active, u.created_at
+         FROM sessions s JOIN users u ON u.id = s.user_id
+         WHERE s.id = ?1 AND s.is_active = 1
+           AND s.expires_at > datetime('now') AND u.is_active = 1",
+        params![session_id],
+        |r| {
+            Ok(User {
+                id: r.get(0)?,
+                username: r.get(1)?,
+                full_name: r.get(2)?,
+                role: r.get(3)?,
+                is_active: r.get::<_, i64>(4)? != 0,
+                created_at: r.get(5)?,
+            })
+        },
+    );
+    match user {
+        Ok(u) => Ok(u),
+        Err(rusqlite::Error::QueryReturnedNoRows) => Err(anyhow!("Session expired, please log in again")),
+        Err(e) => Err(e.into()),
+    }
+}
+
 pub fn hash_password(password: &str) -> Result<String> {
     let salt = SaltString::generate(&mut OsRng);
     let argon2 = Argon2::default();
@@ -86,12 +131,19 @@ pub fn login(conn: &Connection, username: &str, password: &str) -> Result<Sessio
         return Err(anyhow!("Invalid username or password"));
     }
 
+    let _ = cleanup_sessions(conn);
+
     let session_id = Uuid::new_v4().to_string();
-    let expires_at = "2099-01-01 00:00:00".to_string();
+    let modifier = format!("+{} hours", SESSION_HOURS);
 
     conn.execute(
-        "INSERT INTO sessions (id, user_id, expires_at) VALUES (?1, ?2, ?3)",
-        params![session_id, id, expires_at],
+        "INSERT INTO sessions (id, user_id, expires_at) VALUES (?1, ?2, datetime('now', ?3))",
+        params![session_id, id, modifier],
+    )?;
+    let expires_at: String = conn.query_row(
+        "SELECT expires_at FROM sessions WHERE id = ?1",
+        params![session_id],
+        |r| r.get(0),
     )?;
 
     // Write audit log
@@ -114,7 +166,7 @@ pub fn login(conn: &Connection, username: &str, password: &str) -> Result<Sessio
 }
 
 pub fn logout(conn: &Connection, session_id: &str, user_id: &str) -> Result<()> {
-    conn.execute("UPDATE sessions SET is_active = 0 WHERE id = ?1", params![session_id])?;
+    conn.execute("DELETE FROM sessions WHERE id = ?1", params![session_id])?;
 
     let _ = conn.execute(
         "INSERT INTO audit_log (user_id, action) VALUES (?1, 'logout')",
@@ -201,6 +253,10 @@ pub fn set_user_active(
         params![active as i64, target_id],
     )?;
 
+    if !active {
+        revoke_user_sessions(conn, target_id)?;
+    }
+
     let action = if active {
         "user_activated"
     } else {
@@ -239,6 +295,7 @@ pub fn reset_password(
         "UPDATE users SET password_hash = ?1, updated_at = datetime('now') WHERE id = ?2",
         params![new_hash, user_id],
     )?;
+    revoke_user_sessions(conn, user_id)?;
 
     let _ = conn.execute(
         "INSERT INTO audit_log (user_id, action, entity_type, entity_id) VALUES (?1, 'password_changed', 'user', ?2)",
@@ -268,6 +325,7 @@ pub fn change_password(
         "UPDATE users SET password_hash = ?1, updated_at = datetime('now') WHERE id = ?2",
         params![new_hash, user_id],
     )?;
+    revoke_user_sessions(conn, user_id)?;
 
     let _ = conn.execute(
         "INSERT INTO audit_log (user_id, action) VALUES (?1, 'password_changed')",

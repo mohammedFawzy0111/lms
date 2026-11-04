@@ -47,6 +47,7 @@ pub fn run() {
             let conn = db::open_and_migrate(&db_path).expect("failed to initialize the database");
 
             auth::seed_default_admin(&conn).expect("Faild to seed admin data");
+            let _ = auth::cleanup_sessions(&conn);
 
             let resource_path = if cfg!(debug_assertions) {
                 std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("seed/investigations.csv")
@@ -125,6 +126,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             commands::cmd_login,
             commands::cmd_logout,
+            commands::cmd_validate_session,
             commands::cmd_get_settings,
             commands::cmd_set_setting,
             commands::cmd_create_user,

@@ -115,6 +115,15 @@ pub fn cmd_logout(state: State<AppState>, session_id: String, user_id: String) -
     }
 }
 
+#[tauri::command]
+pub fn cmd_validate_session(state: State<AppState>, session_id: String) -> ApiResult<auth::User> {
+    let conn = state.db.lock().unwrap();
+    match auth::validate_session(&conn, &session_id) {
+        Ok(user) => ApiResult::ok(user),
+        Err(e) => ApiResult::err(e.to_string()),
+    }
+}
+
 // ── Settings ──────────────────────────────────────────────────────────────────
 
 #[derive(Debug, Serialize, Deserialize)]
