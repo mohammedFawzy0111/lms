@@ -289,12 +289,13 @@ pub fn cmd_set_user_active(
 #[tauri::command]
 pub fn cmd_change_password(
     state: State<AppState>,
+    actor_id: String,
     user_id: String,
     old_password: String,
     new_password: String,
 ) -> ApiResult<bool> {
     let conn = state.db.lock().unwrap();
-    match auth::change_password(&conn, &user_id, &old_password, &new_password) {
+    match auth::change_password(&conn, &actor_id, &user_id, &old_password, &new_password) {
         Ok(_) => ApiResult::ok(true),
         Err(e) => ApiResult::err(e.to_string()),
     }

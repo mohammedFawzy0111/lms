@@ -325,10 +325,16 @@ pub fn reset_password(
 
 pub fn change_password(
     conn: &Connection,
+    actor_id: &str,
     user_id: &str,
     old_password: &str,
     new_password: &str,
 ) -> Result<()> {
+
+    if actor_id != user_id {
+        return Err(anyhow!("You can only change your own password"));
+    }
+
     let hash: String =
         conn.query_row("SELECT password_hash FROM users WHERE id = ?1", params![user_id], |r| {
             r.get(0)

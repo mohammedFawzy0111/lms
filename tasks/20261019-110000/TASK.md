@@ -1,6 +1,6 @@
 # Admin password reset and role checks for user management
 
-- STATUS: OPEN
+- STATUS: CLOSED
 - PRIORITY: 70
 - TAGS: backend,security
 

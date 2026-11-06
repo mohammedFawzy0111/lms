@@ -3,6 +3,7 @@ import { Page } from "../components/ui/Page";
 import { api, errMsg } from "../lib/api";
 import { useAuthStore, type User } from "../stores/authStore";
 import { ChangePasswordModal } from "./users/ChangePasswordModal";
+import { ResetPasswordModal } from "./users/ResetPasswordModal";
 import { CreateUserModal } from "./users/CreateUserModal";
 import { UsersTable } from "./users/UsersTable";
 import { useUserList } from "./users/useUserList";
@@ -13,11 +14,16 @@ export default function Users() {
   const { users, loading, error, setError, reload } = useUserList();
   const [showCreate, setShowCreate] = useState(false);
   const [passwordFor, setPasswordFor] = useState<User | null>(null);
+  const [resetFor, setResetFor] = useState<User | null>(null);
 
   async function toggleActive(u: User) {
     if (!currentUser) return;
     try {
-      await api("cmd_set_user_active", { actorId: currentUser.id, targetId: u.id, active: !u.is_active });
+      await api("cmd_set_user_active", {
+        actorId: currentUser.id,
+        targetId: u.id,
+        active: !u.is_active,
+      });
       await reload();
     } catch (e) {
       setError(errMsg(e));
@@ -40,14 +46,33 @@ export default function Users() {
         rows={users}
         loading={loading}
         currentUserId={currentUser?.id}
+        currentRole={currentUser?.role}
+        onResetPassword={setResetFor}
         onToggleActive={toggleActive}
         onChangePassword={setPasswordFor}
       />
 
       {showCreate && (
-        <CreateUserModal actorId={currentUser?.id ?? ""} onClose={() => setShowCreate(false)} onCreated={reload} />
+        <CreateUserModal
+          actorId={currentUser?.id ?? ""}
+          onClose={() => setShowCreate(false)}
+          onCreated={reload}
+        />
       )}
-      {passwordFor && <ChangePasswordModal user={passwordFor} onClose={() => setPasswordFor(null)} />}
+      {passwordFor && (
+        <ChangePasswordModal
+          user={passwordFor}
+          actorId={currentUser?.id ?? ""}
+          onClose={() => setPasswordFor(null)}
+        />
+      )}
+      {resetFor && (
+        <ResetPasswordModal
+          user={resetFor}
+          actorId={currentUser?.id ?? ""}
+          onClose={() => setResetFor(null)}
+        />
+      )}
     </Page>
   );
 }

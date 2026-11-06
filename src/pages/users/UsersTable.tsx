@@ -7,11 +7,13 @@ interface Props {
   rows: User[];
   loading: boolean;
   currentUserId: string | undefined;
+  currentRole: User["role"] | undefined;
+  onResetPassword: (u: User) => void;
   onToggleActive: (u: User) => void;
   onChangePassword: (u: User) => void;
 }
 
-export function UsersTable({ rows, loading, currentUserId, onToggleActive, onChangePassword }: Props) {
+export function UsersTable({ rows, loading, currentUserId, currentRole, onResetPassword, onToggleActive, onChangePassword }: Props) {
   return (
     <DataTable
       rows={rows}
@@ -52,7 +54,12 @@ export function UsersTable({ rows, loading, currentUserId, onToggleActive, onCha
               >
                 {u.is_active ? "Disable" : "Enable"}
               </button>
-              <button className="action-btn" onClick={() => onChangePassword(u)}>Password</button>
+              {u.id === currentUserId && (
+                <button className="action-btn" onClick={() => onChangePassword(u)}>Change password</button>
+              )}
+              {currentRole === "admin" && u.role !== "admin" && (
+                <button className="action-btn" onClick={() => onResetPassword(u)}>Reset password</button>
+              )}
             </div>
           ),
         },

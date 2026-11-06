@@ -8,7 +8,7 @@ import { useAuthStore, type User } from "../../stores/authStore";
 
 const FORM_ID = "change-password-form";
 
-export function ChangePasswordModal({ user, onClose }: { user: User; onClose: () => void }) {
+export function ChangePasswordModal({ user, actorId, onClose }: { user: User; actorId: String; onClose: () => void }) {
   const [oldPass, setOldPass] = useState("");
   const [newPass, setNewPass] = useState("");
   const [confirmPass, setConfirmPass] = useState("");
@@ -37,7 +37,7 @@ export function ChangePasswordModal({ user, onClose }: { user: User; onClose: ()
     setSaving(true);
     setError(null);
     try {
-      await api("cmd_change_password", { userId: user.id, oldPassword: oldPass, newPassword: newPass });
+      await api("cmd_change_password", { actorId, userId: user.id, oldPassword: oldPass, newPassword: newPass });
       setDone(true);
     } catch (e) {
       setError(errMsg(e));

@@ -4,11 +4,17 @@ import { Modal } from "../../components/ui/Modal";
 import { Notice } from "../../components/ui/Notice";
 import { api, errMsg } from "../../lib/api";
 import { useEnterKeyNav } from "../../hooks/useEnterKeyNav";
-import { useAuthStore, type User } from "../../stores/authStore";
+import type { User } from "../../stores/authStore";
 
 const FORM_ID = "reset-password-form";
 
-export function ResetPasswordModal({ user, onClose }: { user: User; onClose: () => void }) {
+interface Props {
+  user: User;
+  actorId: string;
+  onClose: () => void;
+}
+
+export function ResetPasswordModal({ user, actorId, onClose }: Props) {
   const [newPass, setNewPass] = useState("");
   const [confirmPass, setConfirmPass] = useState("");
   const [saving, setSaving] = useState(false);
@@ -16,20 +22,11 @@ export function ResetPasswordModal({ user, onClose }: { user: User; onClose: () 
   const [done, setDone] = useState(false);
   const enterKeyProps = useEnterKeyNav();
 
-  const auth = useAuthStore.getState();
-
-  const currentUserId = auth.session?.user.id;
-
-  // After success, close shortly. Changing your own password ends your sessions,
-  // so sign out and let the Login page take over. The cleanup cancels the timer if the user closes first.
   useEffect(() => {
     if (!done) return;
-    const t = setTimeout(() => {
-      if (currentUserId === user.id) void auth.logout();
-      else onClose();
-    }, 1200);
+    const t = setTimeout(onClose, 1200);
     return () => clearTimeout(t);
-  }, [done, onClose, user.id]);
+  }, [done, onClose]);
 
   const ready = !!newPass && !!confirmPass;
 
@@ -39,7 +36,7 @@ export function ResetPasswordModal({ user, onClose }: { user: User; onClose: () 
     setSaving(true);
     setError(null);
     try {
-      await api("cmd_reset_password", { userId: user.id, actor_id: currentUserId,newPassword: newPass });
+      await api("cmd_reset_password", { userId: user.id, actorId, newPassword: newPass });
       setDone(true);
     } catch (e) {
       setError(errMsg(e));
@@ -51,7 +48,7 @@ export function ResetPasswordModal({ user, onClose }: { user: User; onClose: () 
   return (
     <Modal
       size="sm"
-      title={`Change Password — ${user.full_name}`}
+      title={`Reset Password — ${user.full_name}`}
       onClose={onClose}
       footer={
         done ? (
@@ -60,27 +57,20 @@ export function ResetPasswordModal({ user, onClose }: { user: User; onClose: () 
           <>
             <button className="action-btn" onClick={onClose}>Cancel</button>
             <button className="save-btn" type="submit" form={FORM_ID} disabled={saving || !ready}>
-              {saving ? "Saving..." : "Change Password"}
+              {saving ? "Saving..." : "Reset Password"}
             </button>
           </>
         )
       }
     >
       {done ? (
-        <Notice tone="success">Password changed. Please sign in again.</Notice>
+        <Notice tone="success">Password reset. {user.full_name} has been signed out and must log in with the new password.</Notice>
       ) : (
-        <form
-          id={FORM_ID}
-          className="stack"
-          {...enterKeyProps}
-          onSubmit={(e) => {
-            e.preventDefault();
-            submit();
-          }}
-        >
+        <form id={FORM_ID} className="stack" {...enterKeyProps}
+          onSubmit={(e) => { e.preventDefault(); submit(); }}>
           {error && <div className="error">{error}</div>}
           <Field label="New Password">
-            <input className="field__input" type="password" value={newPass} autoComplete="new-password" onChange={(e) => setNewPass(e.target.value)} />
+            <input className="field__input" type="password" value={newPass} autoFocus autoComplete="new-password" onChange={(e) => setNewPass(e.target.value)} />
           </Field>
           <Field label="Confirm New Password">
             <input className="field__input" type="password" value={confirmPass} autoComplete="new-password" onChange={(e) => setConfirmPass(e.target.value)} />
