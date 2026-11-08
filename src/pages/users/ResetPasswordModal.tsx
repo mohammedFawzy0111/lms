@@ -32,11 +32,16 @@ export function ResetPasswordModal({ user, actorId, onClose }: Props) {
 
   async function submit() {
     if (!ready || saving) return;
-    if (newPass !== confirmPass) return setError("The new passwords don't match");
+    if (newPass !== confirmPass)
+      return setError("The new passwords don't match");
     setSaving(true);
     setError(null);
     try {
-      await api("cmd_reset_password", { userId: user.id, actorId, newPassword: newPass });
+      await api("cmd_reset_password", {
+        userId: user.id,
+        actorId,
+        newPassword: newPass,
+      });
       setDone(true);
     } catch (e) {
       setError(errMsg(e));
@@ -52,11 +57,20 @@ export function ResetPasswordModal({ user, actorId, onClose }: Props) {
       onClose={onClose}
       footer={
         done ? (
-          <button className="action-btn" onClick={onClose}>Close</button>
+          <button className="action-btn" onClick={onClose}>
+            Close
+          </button>
         ) : (
           <>
-            <button className="action-btn" onClick={onClose}>Cancel</button>
-            <button className="save-btn" type="submit" form={FORM_ID} disabled={saving || !ready}>
+            <button className="action-btn" onClick={onClose}>
+              Cancel
+            </button>
+            <button
+              className="save-btn"
+              type="submit"
+              form={FORM_ID}
+              disabled={saving || !ready}
+            >
               {saving ? "Saving..." : "Reset Password"}
             </button>
           </>
@@ -64,16 +78,39 @@ export function ResetPasswordModal({ user, actorId, onClose }: Props) {
       }
     >
       {done ? (
-        <Notice tone="success">Password reset. {user.full_name} has been signed out and must log in with the new password.</Notice>
+        <Notice tone="success">
+          Password reset. {user.full_name} has been signed out and must log in
+          with the new password.
+        </Notice>
       ) : (
-        <form id={FORM_ID} className="stack" {...enterKeyProps}
-          onSubmit={(e) => { e.preventDefault(); submit(); }}>
+        <form
+          id={FORM_ID}
+          className="stack"
+          {...enterKeyProps}
+          onSubmit={(e) => {
+            e.preventDefault();
+            submit();
+          }}
+        >
           {error && <div className="error">{error}</div>}
           <Field label="New Password">
-            <input className="field__input" type="password" value={newPass} autoFocus autoComplete="new-password" onChange={(e) => setNewPass(e.target.value)} />
+            <input
+              className="field__input"
+              type="password"
+              value={newPass}
+              autoFocus
+              autoComplete="new-password"
+              onChange={(e) => setNewPass(e.target.value)}
+            />
           </Field>
           <Field label="Confirm New Password">
-            <input className="field__input" type="password" value={confirmPass} autoComplete="new-password" onChange={(e) => setConfirmPass(e.target.value)} />
+            <input
+              className="field__input"
+              type="password"
+              value={confirmPass}
+              autoComplete="new-password"
+              onChange={(e) => setConfirmPass(e.target.value)}
+            />
           </Field>
         </form>
       )}

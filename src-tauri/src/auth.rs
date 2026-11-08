@@ -32,10 +32,7 @@ const SESSION_HOURS: i64 = 12;
 
 /// Delete every session that has expired or been deactivated.
 pub fn cleanup_sessions(conn: &Connection) -> Result<()> {
-    conn.execute(
-        "DELETE FROM sessions WHERE expires_at <= datetime('now') OR is_active = 0",
-        [],
-    )?;
+    conn.execute("DELETE FROM sessions WHERE expires_at <= datetime('now') OR is_active = 0", [])?;
     Ok(())
 }
 
@@ -67,15 +64,21 @@ pub fn validate_session(conn: &Connection, session_id: &str) -> Result<User> {
     );
     match user {
         Ok(u) => Ok(u),
-        Err(rusqlite::Error::QueryReturnedNoRows) => Err(anyhow!("Session expired, please log in again")),
+        Err(rusqlite::Error::QueryReturnedNoRows) => {
+            Err(anyhow!("Session expired, please log in again"))
+        },
         Err(e) => Err(e.into()),
     }
 }
 
 pub fn require_admin(conn: &Connection, actor_id: &str) -> Result<()> {
-    let role: String = conn.query_row("SELECT role FROM users WHERE id = ?1 AND is_active = 1",
-        params![actor_id],
-        |r| r.get(0)).map_err(|_| anyhow!("unknown or disabled user"))?;
+    let role: String = conn
+        .query_row(
+            "SELECT role FROM users WHERE id = ?1 AND is_active = 1",
+            params![actor_id],
+            |r| r.get(0),
+        )
+        .map_err(|_| anyhow!("unknown or disabled user"))?;
 
     if role != "admin" {
         return Err(anyhow!("Only an Administrator can do this"));
@@ -195,7 +198,6 @@ pub fn create_user(
     role: &str,
     actor_id: &str,
 ) -> Result<User> {
-
     require_admin(conn, actor_id)?;
 
     let exists: i64 = conn.query_row(
@@ -262,11 +264,10 @@ pub fn set_user_active(
     active: bool,
     actor_id: &str,
 ) -> Result<()> {
-
     require_admin(conn, actor_id)?;
 
-    if !active && target_id == actor_id { 
-        return Err(anyhow!("You can't disable your own account")); 
+    if !active && target_id == actor_id {
+        return Err(anyhow!("You can't disable your own account"));
     }
 
     conn.execute(
@@ -297,7 +298,6 @@ pub fn reset_password(
     actor_id: &str,
     new_password: &str,
 ) -> Result<()> {
-
     require_admin(conn, actor_id)?;
 
     let user_role: String =
@@ -330,7 +330,6 @@ pub fn change_password(
     old_password: &str,
     new_password: &str,
 ) -> Result<()> {
-
     if actor_id != user_id {
         return Err(anyhow!("You can only change your own password"));
     }

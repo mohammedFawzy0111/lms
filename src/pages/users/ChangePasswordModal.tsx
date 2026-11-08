@@ -8,7 +8,7 @@ import { useAuthStore, type User } from "../../stores/authStore";
 
 const FORM_ID = "change-password-form";
 
-export function ChangePasswordModal({ user, actorId, onClose }: { user: User; actorId: String; onClose: () => void }) {
+export function ChangePasswordModal({ user, actorId, onClose }: { user: User; actorId: string; onClose: () => void }) {
   const [oldPass, setOldPass] = useState("");
   const [newPass, setNewPass] = useState("");
   const [confirmPass, setConfirmPass] = useState("");
