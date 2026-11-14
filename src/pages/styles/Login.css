@@ -9,6 +9,10 @@
   transition: background var(--t-normal);
 }
 
+.login__spin {
+  display: inline-flex;
+}
+
 /* Background */
 .login-bg {
   position: absolute;

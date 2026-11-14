@@ -13,7 +13,9 @@ export default function Login() {
     e.preventDefault();
     clearError();
     if (!username.trim() || !password) return;
-    try { await login(username.trim(), password); } catch { }
+    try {
+      await login(username.trim(), password);
+    } catch {}
   }
 
   return (
@@ -82,9 +84,7 @@ export default function Login() {
             disabled={isLoading || !username.trim() || !password}
           >
             {isLoading ? (
-              <span className="anim-spin" style={{ display: "inline-flex" }}>
-                ◌
-              </span>
+              <span className="anim-spin login__spin">◌</span>
             ) : (
               <LogIn size={14} />
             )}

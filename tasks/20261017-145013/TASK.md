@@ -1,6 +1,6 @@
 # Replace remaining inline styles with classes
 
-- STATUS: OPEN
+- STATUS: CLOSED
 - PRIORITY: 15
 - TAGS: ui,refactor
 
