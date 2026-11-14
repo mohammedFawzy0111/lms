@@ -1,6 +1,6 @@
 # Bundle IBM Plex fonts locally
 
-- STATUS: OPEN
+- STATUS: CLOSED
 - PRIORITY: 10
 - TAGS: ui,polish
 
