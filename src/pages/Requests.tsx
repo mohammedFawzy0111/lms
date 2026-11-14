@@ -47,7 +47,6 @@ export default function Requests() {
     });
   }
 
-  // Stagger the windows so they don't all open on the same tick.
   function printSelected() {
     openReportsWindow([...selectedIds]);
   }

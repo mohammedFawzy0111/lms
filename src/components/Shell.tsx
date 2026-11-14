@@ -1,20 +1,39 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import {
-  LayoutDashboard, Users, Settings,
-  LogOut, Sun, Moon, ChevronLeft, ChevronRight,
-  FlaskConical, UserPlus, TestTube2, ClipboardList, Receipt
+  LayoutDashboard,
+  Users,
+  Settings,
+  LogOut,
+  Sun,
+  Moon,
+  ChevronLeft,
+  ChevronRight,
+  FlaskConical,
+  UserPlus,
+  TestTube2,
+  ClipboardList,
+  Receipt,
 } from "lucide-react";
 import { useState } from "react";
 import { clsx } from "clsx";
 import { useAuthStore } from "../stores/authStore";
-import { useSettingsStore } from "../stores/settingsStore";
+import { useSettingsStore, useRegionalKey } from "../stores/settingsStore";
 import "./styles/Shell.css";
 
 const NAV = [
-  { to: "/", label: "Dashboard", icon: <LayoutDashboard size={15} />, end: true },
+  {
+    to: "/",
+    label: "Dashboard",
+    icon: <LayoutDashboard size={15} />,
+    end: true,
+  },
   { to: "/requests", label: "Requests", icon: <ClipboardList size={15} /> },
   { to: "/billing", label: "Billing", icon: <Receipt size={15} /> },
-  { to: "/investigations", label: "Investigations", icon: <TestTube2 size={15} /> },
+  {
+    to: "/investigations",
+    label: "Investigations",
+    icon: <TestTube2 size={15} />,
+  },
   { to: "/patients", label: "Patients", icon: <UserPlus size={15} /> },
   { to: "/users", label: "Users", icon: <Users size={15} /> },
   { to: "/settings", label: "Settings", icon: <Settings size={15} /> },
@@ -26,6 +45,7 @@ export default function Shell() {
   const logout = useAuthStore((s) => s.logout);
   const settings = useSettingsStore((s) => s.settings);
   const setTheme = useSettingsStore((s) => s.setTheme);
+  const regionalKey = useRegionalKey();
   const navigate = useNavigate();
   const isDark = (settings?.theme ?? "dark") === "dark";
 
@@ -122,7 +142,7 @@ export default function Shell() {
 
       {/* Main */}
       <main className="shell__main">
-        <Outlet />
+        <Outlet key={regionalKey} />
       </main>
     </div>
   );

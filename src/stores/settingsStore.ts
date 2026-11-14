@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { invoke } from "@tauri-apps/api/core";
+import { setRegional } from "../lib/format";
 
 interface ApiResult<T> {
   ok: boolean;
@@ -39,6 +40,10 @@ export const useSettingsStore = create<SettingsState>()((set, get) => ({
       if (res.ok && res.data) {
         set({ settings: res.data });
         applyTheme(res.data.theme);
+        setRegional({
+          currency: res.data.currency,
+          dateFormat: res.data.date_format,
+        });
       }
     } finally {
       set({ isLoading: false });
@@ -52,6 +57,8 @@ export const useSettingsStore = create<SettingsState>()((set, get) => ({
       const next = { ...prev, [key]: value };
       set({ settings: next });
       if (key === "theme") applyTheme(value);
+      if (key == "currency") setRegional({ currency: value });
+      if (key == "date_format") setRegional({ dateFormat: value });
     }
   },
 
@@ -64,6 +71,13 @@ export const useSettingsStore = create<SettingsState>()((set, get) => ({
 function applyTheme(theme: string) {
   document.documentElement.setAttribute(
     "data-theme",
-    theme === "light" ? "light" : "dark"
+    theme === "light" ? "light" : "dark",
+  );
+}
+
+/** Changes whenever a regional setting changes; use as a React `key` so a page remounts. */
+export function useRegionalKey(): string {
+  return useSettingsStore((s) =>
+    s.settings ? `${s.settings.currency}|${s.settings.date_format}` : "",
   );
 }

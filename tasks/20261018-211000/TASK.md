@@ -1,6 +1,6 @@
 # Honour the currency and date format settings
 
-- STATUS: OPEN
+- STATUS: CLOSED
 - PRIORITY: 45
 - TAGS: feature,ui
 

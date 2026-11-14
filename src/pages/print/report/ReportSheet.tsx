@@ -1,7 +1,12 @@
 import type { CSSProperties } from "react";
 import { calcAge } from "../../patients/age";
-import { formatDateTime } from "../../../lib/format";
-import { FLAG_INFO, groupByCategory, isAbnormal, reportStatus } from "./helpers";
+import { dateOnly, formatDateTime } from "../../../lib/format";
+import {
+  FLAG_INFO,
+  groupByCategory,
+  isAbnormal,
+  reportStatus,
+} from "./helpers";
 import { ResultsTable } from "./ResultsTable";
 import type { Margins, PrintData, PrintMode } from "./types";
 
@@ -15,7 +20,13 @@ interface Props {
 
 function formatDob(dob: string): string {
   const d = new Date(dob);
-  return isNaN(d.getTime()) ? dob : d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+  return isNaN(d.getTime())
+    ? dob
+    : d.toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      });
 }
 
 function Row({ label, value }: { label: string; value: string }) {
@@ -38,8 +49,13 @@ export function ReportSheet({ data, mode, margins, printedAt }: Props) {
   const status = reportStatus(view.results);
   const full = mode === "full";
 
-  const age = calcAge({ date_of_birth: view.patient_dob, age_override: view.patient_age });
-  const sex = view.patient_gender ? view.patient_gender[0].toUpperCase() + view.patient_gender.slice(1) : "—";
+  const age = calcAge({
+    date_of_birth: view.patient_dob,
+    age_override: view.patient_age,
+  });
+  const sex = view.patient_gender
+    ? view.patient_gender[0].toUpperCase() + view.patient_gender.slice(1)
+    : "—";
   const printed = formatDateTime(printedAt.toISOString());
 
   const style = {
@@ -61,7 +77,11 @@ export function ReportSheet({ data, mode, margins, printedAt }: Props) {
                   <div className="rp-letterhead__contact">
                     {lab.lab_address && <div>{lab.lab_address}</div>}
                     {(lab.lab_phone || lab.lab_email) && (
-                      <div>{[lab.lab_phone, lab.lab_email].filter(Boolean).join("  ·  ")}</div>
+                      <div>
+                        {[lab.lab_phone, lab.lab_email]
+                          .filter(Boolean)
+                          .join("  ·  ")}
+                      </div>
                     )}
                   </div>
                 </header>
@@ -69,21 +89,24 @@ export function ReportSheet({ data, mode, margins, printedAt }: Props) {
 
               <div className="rp-heading">
                 <h1 className="rp-heading__title">Laboratory report</h1>
-                <span className={`rp-status rp-status--${status}`}>{status === "final" ? "Final" : "Preliminary"}</span>
+                <span className={`rp-status rp-status--${status}`}>
+                  {status === "final" ? "Final" : "Preliminary"}
+                </span>
               </div>
 
               <dl className="rp-meta">
                 <Row label="Patient" value={view.patient_name} />
                 <Row label="Patient ID" value={view.patient_no} />
                 <Row label="Age / sex" value={`${age} / ${sex}`} />
-                <Row label="Date of birth" value={view.patient_dob ? formatDob(view.patient_dob) : "—"} />
+                <Row label="Date of birth" value={dateOnly(view.patient_dob)} />
                 <Row label="Request" value={view.request_no} />
                 <Row label="Printed" value={printed} />
               </dl>
 
               {status === "preliminary" && (
                 <p className="rp-banner">
-                  Some results are pending or not yet final. Values marked * are preliminary.
+                  Some results are pending or not yet final. Values marked * are
+                  preliminary.
                 </p>
               )}
 
@@ -97,7 +120,8 @@ export function ReportSheet({ data, mode, margins, printedAt }: Props) {
                   <ul>
                     {abnormal.map((r) => (
                       <li key={r.test_code}>
-                        {r.test_name} is {FLAG_INFO[r.flag!].remark}. Correlate clinically.
+                        {r.test_name} is {FLAG_INFO[r.flag!].remark}. Correlate
+                        clinically.
                       </li>
                     ))}
                   </ul>

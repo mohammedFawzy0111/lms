@@ -1,11 +1,68 @@
-/** One place to change the currency display later (e.g. from lab settings). */
-export function money(n: number): string {
-  return `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+/** Regional settings (lab settings: currency + date format). Set by the settings store. */
+let regional: { currency: string; dateFormat: string } = {
+  currency: "EGP",
+  dateFormat: "YYYY-MM-DD",
+};
+
+export function setRegional(r: { currency?: string; dateFormat?: string }) {
+  regional = {
+    currency: r.currency || regional.currency,
+    dateFormat: r.dateFormat || regional.dateFormat,
+  };
 }
 
-/** "2026-10-17 14:05:00" -> "2026-10-17"; null/empty -> "—". */
+const moneyFormaters = new Map<string, Intl.NumberFormat>();
+
+/** 1234.5 -> "EGP 1,234.50" / "$1,234.50" depending on the currency setting. */
+export function money(n: number): string {
+  const code = regional.currency;
+  let fmt = moneyFormaters.get(code);
+
+  if (!fmt) {
+    try {
+      fmt = Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: code,
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+    } catch {
+      // Unknown currency code: fall back to a plain number with the code in front.
+      return `${code} ${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
+
+    moneyFormaters.set(code, fmt);
+  }
+
+  return fmt.format(n);
+}
+
+function layoutDate(y: string, m: string, d: string): string {
+  switch (regional.dateFormat) {
+    case "DD/MM/YYYY":
+      return `${d}/${m}/${y}`;
+    case "MM/DD/YYYY":
+      return `${m}/${d}/${y}`;
+    default:
+      return `${y}-${m}-${d}`;
+  }
+}
+
+/** "2026-10-17" or "2026-10-17 14:05:00" -> the configured format; null/empty -> "—". No time-zone shift. */
 export function dateOnly(s: string | null | undefined): string {
-  return s ? s.split(" ")[0] : "—";
+  if (!s) return "—";
+  const [y, m, d] = s.split(/[ T]/)[0].split("-");
+  return y && m && d ? layoutDate(y, m, d) : s;
+}
+
+/** A Date in the user's local time as the configured date format. */
+export function formatDate(d: Date): string {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return layoutDate(
+    String(d.getFullYear()),
+    pad(d.getMonth() + 1),
+    pad(d.getDate()),
+  );
 }
 
 /** 1536 -> "1.5 KB". */
@@ -33,12 +90,16 @@ export function timeAgo(ts: string): string {
   if (min < 60) return `${min}m ago`;
   const hr = Math.floor(min / 60);
   if (hr < 24) return `${hr}h ago`;
-  return d.toLocaleDateString();
+  return formatDate(d);
 }
 
-/** A stored UTC timestamp as local "19 Oct 2026, 13:05". */
+/** A stored UTC timestamp as local date (configured format) plus 24h time: "19/10/2026 13:05". */
 export function formatDateTime(ts: string): string {
   const d = parseUtc(ts);
   if (isNaN(d.getTime())) return ts;
-  return d.toLocaleString("en-GB", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+  const time = d.toLocaleTimeString("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  return `${formatDate(d)} ${time}`;
 }

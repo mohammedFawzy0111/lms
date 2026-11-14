@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuthStore } from "./stores/authStore";
-import { useSettingsStore } from "./stores/settingsStore";
+import { useRegionalKey, useSettingsStore } from "./stores/settingsStore";
 import TitleBar from "./components/TitleBar";
 import Shell from "./components/Shell";
 import Login from "./pages/Login";
@@ -22,6 +22,7 @@ const fallback = <div className="loading">Loading...</div>;
 export default function App() {
   const session = useAuthStore((s) => s.session);
   const loadSettings = useSettingsStore((s) => s.load);
+  const regionalKey = useRegionalKey();
 
   const validate = useAuthStore((s) => s.validate);
   const sessionId = session?.id;
@@ -46,8 +47,14 @@ export default function App() {
     <Suspense fallback={fallback}>
       <Routes>
         {/* Print routes: no shell, no auth check */}
-        <Route path="/print/:requestId" element={<PrintReport />} />
-        <Route path="/receipt/:paymentId" element={<PrintReceipt />} />
+        <Route
+          path="/print/:requestId"
+          element={<PrintReport key={regionalKey} />}
+        />
+        <Route
+          path="/receipt/:paymentId"
+          element={<PrintReceipt key={regionalKey} />}
+        />
         <Route path="/print" element={<PrintReport />} />
 
         {/* Main app */}
