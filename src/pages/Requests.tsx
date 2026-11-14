@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { CatTabs } from "../components/ui/CatTabs";
 import { Page } from "../components/ui/Page";
-import { openReportWindow } from "../lib/printWindow";
+import { openReportsWindow, openReportWindow } from "../lib/printWindow";
 import { useAuthStore } from "../stores/authStore";
 import { NewRequestModal } from "./requests/NewRequestModal";
 import { RequestDetailModal } from "./requests/RequestDetailModal";
@@ -49,7 +49,7 @@ export default function Requests() {
 
   // Stagger the windows so they don't all open on the same tick.
   function printSelected() {
-    [...selectedIds].forEach((id, i) => setTimeout(() => openReportWindow(id), i * 300));
+    openReportsWindow([...selectedIds]);
   }
 
   return (
@@ -70,7 +70,11 @@ export default function Requests() {
       }
     >
       <div className="toolbar">
-        <CatTabs categories={STATUSES} categoriesLabels={STATUS_LABELS} onSelect={setStatusFilter} />
+        <CatTabs
+          categories={STATUSES}
+          categoriesLabels={STATUS_LABELS}
+          onSelect={setStatusFilter}
+        />
         <input
           className="field__input search"
           placeholder="Search patient, request #..."
@@ -86,14 +90,20 @@ export default function Requests() {
         loading={loading}
         selectedIds={selectedIds}
         onToggle={toggleSelect}
-        onToggleAll={(checked) => setSelectedIds(new Set(checked ? requests.map((r) => r.id) : []))}
+        onToggleAll={(checked) =>
+          setSelectedIds(new Set(checked ? requests.map((r) => r.id) : []))
+        }
         onView={setDetailId}
         onResults={(id) => navigate(`/results/${id}`)}
         onPrint={openReportWindow}
       />
 
       {showNew && (
-        <NewRequestModal actorId={actorId} onClose={() => setShowNew(false)} onSaved={reload} />
+        <NewRequestModal
+          actorId={actorId}
+          onClose={() => setShowNew(false)}
+          onSaved={reload}
+        />
       )}
 
       {detailId && (

@@ -1,6 +1,6 @@
 # Print several reports in one window
 
-- STATUS: OPEN
+- STATUS: CLOSED
 - PRIORITY: 55
 - TAGS: feature,print
 

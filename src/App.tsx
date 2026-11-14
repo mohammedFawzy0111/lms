@@ -19,7 +19,7 @@ const PrintReceipt = lazy(() => import("./pages/PrintReceipt"));
 
 const fallback = <div className="loading">Loading...</div>;
 
-export default function App() {  
+export default function App() {
   const session = useAuthStore((s) => s.session);
   const loadSettings = useSettingsStore((s) => s.load);
 
@@ -42,15 +42,15 @@ export default function App() {
     };
   }, [sessionId, validate]);
 
-
   return (
     <Suspense fallback={fallback}>
       <Routes>
         {/* Print routes: no shell, no auth check */}
         <Route path="/print/:requestId" element={<PrintReport />} />
         <Route path="/receipt/:paymentId" element={<PrintReceipt />} />
+        <Route path="/print" element={<PrintReport />} />
 
-       {/* Main app */}
+        {/* Main app */}
         <Route
           path="*"
           element={
@@ -61,7 +61,10 @@ export default function App() {
                   {!session ? (
                     <>
                       <Route path="/login" element={<Login />} />
-                      <Route path="*" element={<Navigate to="/login" replace />} />
+                      <Route
+                        path="*"
+                        element={<Navigate to="/login" replace />}
+                      />
                     </>
                   ) : (
                     <Route element={<Shell />}>
@@ -69,7 +72,10 @@ export default function App() {
                       <Route path="/requests" element={<Requests />} />
                       <Route path="/results/:requestId" element={<Results />} />
                       <Route path="/patients" element={<Patients />} />
-                      <Route path="/investigations" element={<Investigations />} />
+                      <Route
+                        path="/investigations"
+                        element={<Investigations />}
+                      />
                       <Route path="/billing" element={<Billing />} />
                       <Route path="/users" element={<Users />} />
                       <Route path="/settings" element={<Settings />} />

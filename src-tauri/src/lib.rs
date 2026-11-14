@@ -11,6 +11,9 @@ mod results;
 mod search;
 mod seed;
 
+#[cfg(debug_assertions)]
+mod devseed;
+
 use rusqlite::Connection;
 use std::sync::{Arc, Mutex};
 use tauri::Manager;
@@ -59,6 +62,13 @@ pub fn run() {
             tracing::info!("Resolved seed CSV path: {:?}", resource_path);
             if let Err(e) = seed::import_if_empty(&conn, &resource_path) {
                 tracing::warn!("Investiagation seed import failed: {}", e);
+            }
+
+            #[cfg(debug_assertions)]
+            {
+                if let Err(e) = devseed::seed_if_empty(&conn) {
+                    tracing::warn!("Dev seed failed: {}", e);
+                }
             }
 
             // --------Auto backup check -----

@@ -37,3 +37,18 @@ export async function closeThisWindow() {
     window.close();
   }
 }
+
+/** One window for several requests; a single id keeps using the normal route. */
+export function openReportsWindow(ids: string[]) {
+  if (ids.length === 1) return openReportWindow(ids[0]);
+  const win = new WebviewWindow(`print_batch_${Date.now()}`, {
+    url: `/#/print?ids=${ids.join(",")}`,
+    title: `Print ${ids.length} Reports`,
+    width: 900,
+    height: 720,
+    center: true,
+    decorations: true,
+    resizable: true,
+  });
+  win.once("tauri://error", (e) => console.error("Print window error:", e));
+}
