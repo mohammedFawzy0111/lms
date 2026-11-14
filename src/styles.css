@@ -1,6 +1,4 @@
 /* Global entry point. Order matters: tokens -> base -> shared components. */
-@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap");
-
 @import "./styles/tokens.css";
 @import "./styles/base.css";
 @import "./styles/components.css";
