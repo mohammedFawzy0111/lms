@@ -55,7 +55,7 @@ export default function App() {
           path="/receipt/:paymentId"
           element={<PrintReceipt key={regionalKey} />}
         />
-        <Route path="/print" element={<PrintReport />} />
+        <Route path="/print" element={<PrintReport key={regionalKey} />} />
 
         {/* Main app */}
         <Route

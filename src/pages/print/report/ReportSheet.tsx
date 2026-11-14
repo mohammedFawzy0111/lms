@@ -18,17 +18,6 @@ interface Props {
   printedAt: Date;
 }
 
-function formatDob(dob: string): string {
-  const d = new Date(dob);
-  return isNaN(d.getTime())
-    ? dob
-    : d.toLocaleDateString("en-GB", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      });
-}
-
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="rp-meta__row">

@@ -57,8 +57,8 @@ export const useSettingsStore = create<SettingsState>()((set, get) => ({
       const next = { ...prev, [key]: value };
       set({ settings: next });
       if (key === "theme") applyTheme(value);
-      if (key == "currency") setRegional({ currency: value });
-      if (key == "date_format") setRegional({ dateFormat: value });
+      if (key === "currency") setRegional({ currency: value });
+      if (key === "date_format") setRegional({ dateFormat: value });
     }
   },
 
