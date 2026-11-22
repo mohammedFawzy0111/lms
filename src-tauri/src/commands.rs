@@ -14,6 +14,7 @@ use std::path::PathBuf;
 use tauri::Manager;
 use tauri::State;
 
+
 #[derive(Serialize)]
 pub struct ApiResult<T: Serialize> {
     pub ok: bool,
@@ -91,7 +92,15 @@ pub struct SearchResult {
     pub extra: Option<String>,
 }
 
-// ── Auth ──────────────────────────────────────────────────────────────────────
+// === Auth ===
+macro_rules! authorize {
+    ($conn:expr, $seesion_id:expr, $roles:expr) => {
+        match auth::authorize(&$conn, &$seesion_id, &$roles) {
+            Ok(user) => user,
+            Err(e) => return ApiResult::err(e.to_string())
+        }
+    };
+}
 
 #[tauri::command]
 pub fn cmd_login(
@@ -250,14 +259,15 @@ pub fn cmd_restore_backup(app: tauri::AppHandle, backup_path: String) -> ApiResu
 #[tauri::command]
 pub fn cmd_create_user(
     state: State<AppState>,
-    actor_id: String,
+    session_id: String,
     username: String,
     password: String,
     full_name: String,
     role: String,
 ) -> ApiResult<auth::User> {
     let conn = state.db.lock().unwrap();
-    match auth::create_user(&conn, &username, &password, &full_name, &role, &actor_id) {
+    let actor = authorize!(conn, session_id, auth::ADMIN);
+    match auth::create_user(&conn, &username, &password, &full_name, &role, &actor.id) {
         Ok(user) => ApiResult::ok(user),
         Err(e) => ApiResult::err(e.to_string()),
     }
@@ -275,12 +285,13 @@ pub fn cmd_list_users(state: State<AppState>) -> ApiResult<Vec<auth::User>> {
 #[tauri::command]
 pub fn cmd_set_user_active(
     state: State<AppState>,
-    actor_id: String,
+    session_id: String,
     target_id: String,
     active: bool,
 ) -> ApiResult<bool> {
     let conn = state.db.lock().unwrap();
-    match auth::set_user_active(&conn, &target_id, active, &actor_id) {
+    let actor = authorize!(conn, session_id, auth::ADMIN);
+    match auth::set_user_active(&conn, &target_id, active, &actor.id) {
         Ok(_) => ApiResult::ok(true),
         Err(e) => ApiResult::err(e.to_string()),
     }
@@ -289,13 +300,14 @@ pub fn cmd_set_user_active(
 #[tauri::command]
 pub fn cmd_change_password(
     state: State<AppState>,
-    actor_id: String,
+    session_id: String,
     user_id: String,
     old_password: String,
     new_password: String,
 ) -> ApiResult<bool> {
     let conn = state.db.lock().unwrap();
-    match auth::change_password(&conn, &actor_id, &user_id, &old_password, &new_password) {
+    let actor = authorize!(conn, session_id, auth::ANY);
+    match auth::change_password(&conn, &actor.id, &user_id, &old_password, &new_password) {
         Ok(_) => ApiResult::ok(true),
         Err(e) => ApiResult::err(e.to_string()),
     }
@@ -305,11 +317,12 @@ pub fn cmd_change_password(
 pub fn cmd_reset_password(
     state: State<AppState>,
     user_id: String,
-    actor_id: String,
+    session_id: String,
     new_password: String,
 ) -> ApiResult<bool> {
     let conn = state.db.lock().unwrap();
-    match auth::reset_password(&conn, &user_id, &actor_id, &new_password) {
+    let actor = authorize!(conn, session_id, auth::ADMIN);
+    match auth::reset_password(&conn, &user_id, &actor.id, &new_password) {
         Ok(_) => ApiResult::ok(true),
         Err(e) => ApiResult::err(e.to_string()),
     }
@@ -319,10 +332,11 @@ pub fn cmd_reset_password(
 pub fn cmd_create_patient(
     state: State<AppState>,
     patient: NewPatient,
-    actor_id: String,
+    session_id: String,
 ) -> ApiResult<Patient> {
     let conn = state.db.lock().unwrap();
-    match patients::create_patient(&conn, patient, &actor_id) {
+    let actor = authorize!(conn, session_id, auth::FRONT_DESK);
+    match patients::create_patient(&conn, patient, &actor.id) {
         Ok(p) => ApiResult::ok(p),
         Err(e) => ApiResult::err(e.to_string()),
     }
@@ -331,21 +345,23 @@ pub fn cmd_create_patient(
 #[tauri::command]
 pub fn cmd_update_patient(
     state: State<AppState>,
-    actor_id: String,
+    session_id: String,
     id: String,
     patient: NewPatient,
 ) -> ApiResult<Patient> {
     let conn = state.db.lock().unwrap();
-    match patients::update_patient(&conn, &id, patient, &actor_id) {
+    let actor = authorize!(conn, session_id, auth::FRONT_DESK);
+    match patients::update_patient(&conn, &id, patient, &actor.id) {
         Ok(p) => ApiResult::ok(p),
         Err(e) => ApiResult::err(e.to_string()),
     }
 }
 
 #[tauri::command]
-pub fn cmd_delete_patient(state: State<AppState>, actor_id: String, id: String) -> ApiResult<bool> {
+pub fn cmd_delete_patient(state: State<AppState>, session_id: String, id: String) -> ApiResult<bool> {
     let conn = state.db.lock().unwrap();
-    match patients::delete_patient(&conn, &id, &actor_id) {
+    let actor = authorize!(conn, session_id, auth:: FRONT_DESK);
+    match patients::delete_patient(&conn, &id, &actor.id) {
         Ok(_) => ApiResult::ok(true),
         Err(e) => ApiResult::err(e.to_string()),
     }
@@ -421,11 +437,12 @@ pub fn cmd_create_category(state: State<AppState>, name: String) -> ApiResult<Ca
 #[tauri::command]
 pub fn cmd_create_investigation(
     state: State<AppState>,
-    actor_id: String,
+    session_id: String,
     inv: NewInvestigation,
 ) -> ApiResult<Investigation> {
     let conn = state.db.lock().unwrap();
-    match investigations::create_investigation(&conn, inv, &actor_id) {
+    let actor = authorize!(conn, session_id, auth::STAFF);
+    match investigations::create_investigation(&conn, inv, &actor.id) {
         Ok(i) => ApiResult::ok(i),
         Err(e) => ApiResult::err(e.to_string()),
     }
@@ -434,12 +451,13 @@ pub fn cmd_create_investigation(
 #[tauri::command]
 pub fn cmd_update_investigation(
     state: State<AppState>,
-    actor_id: String,
+    session_id: String,
     id: String,
     inv: NewInvestigation,
 ) -> ApiResult<Investigation> {
     let conn = state.db.lock().unwrap();
-    match investigations::update_investigation(&conn, &id, inv, &actor_id) {
+    let actor = authorize!(conn, session_id, auth::STAFF);
+    match investigations::update_investigation(&conn, &id, inv, &actor.id) {
         Ok(i) => ApiResult::ok(i),
         Err(e) => ApiResult::err(e.to_string()),
     }
@@ -448,12 +466,13 @@ pub fn cmd_update_investigation(
 #[tauri::command]
 pub fn cmd_set_investigation_active(
     state: State<AppState>,
-    actor_id: String,
+    session_id: String,
     id: String,
     active: bool,
 ) -> ApiResult<bool> {
     let conn = state.db.lock().unwrap();
-    match investigations::set_investigation_active(&conn, &id, active, &actor_id) {
+    let actor = authorize!(conn, session_id, auth::STAFF);
+    match investigations::set_investigation_active(&conn, &id, active, &actor.id) {
         Ok(_) => ApiResult::ok(true),
         Err(e) => ApiResult::err(e.to_string()),
     }
@@ -462,11 +481,12 @@ pub fn cmd_set_investigation_active(
 #[tauri::command]
 pub fn cmd_delete_investigation(
     state: State<AppState>,
-    actor_id: String,
+    session_id: String,
     id: String,
 ) -> ApiResult<bool> {
     let conn = state.db.lock().unwrap();
-    match investigations::delete_investigation(&conn, &id, &actor_id) {
+    let actor = authorize!(conn, session_id, auth::STAFF);
+    match investigations::delete_investigation(&conn, &id, &actor.id) {
         Ok(_) => ApiResult::ok(true),
         Err(e) => ApiResult::err(e.to_string()),
     }
@@ -546,11 +566,12 @@ pub fn cmd_get_profile(state: State<AppState>, id: String) -> ApiResult<ProfileW
 #[tauri::command]
 pub fn cmd_create_profile(
     state: State<AppState>,
-    actor_id: String,
+    session_id: String,
     profile: NewProfile,
 ) -> ApiResult<ProfileWithTests> {
     let conn = state.db.lock().unwrap();
-    match profiles::create_profile(&conn, profile, &actor_id) {
+    let actor = authorize!(conn, session_id, auth::LAB);
+    match profiles::create_profile(&conn, profile, &actor.id) {
         Ok(p) => ApiResult::ok(p),
         Err(e) => ApiResult::err(e.to_string()),
     }
@@ -559,12 +580,13 @@ pub fn cmd_create_profile(
 #[tauri::command]
 pub fn cmd_update_profile(
     state: State<AppState>,
-    actor_id: String,
+    session_id: String,
     id: String,
     profile: NewProfile,
 ) -> ApiResult<ProfileWithTests> {
     let conn = state.db.lock().unwrap();
-    match profiles::update_profile(&conn, &id, profile, &actor_id) {
+    let actor = authorize!(conn, session_id, auth::LAB);
+    match profiles::update_profile(&conn, &id, profile, &actor.id) {
         Ok(p) => ApiResult::ok(p),
         Err(e) => ApiResult::err(e.to_string()),
     }
@@ -573,21 +595,23 @@ pub fn cmd_update_profile(
 #[tauri::command]
 pub fn cmd_set_profile_active(
     state: State<AppState>,
-    actor_id: String,
+    session_id: String,
     id: String,
     active: bool,
 ) -> ApiResult<bool> {
     let conn = state.db.lock().unwrap();
-    match profiles::set_profile_active(&conn, &id, active, &actor_id) {
+    let actor = authorize!(conn, session_id, auth::LAB);
+    match profiles::set_profile_active(&conn, &id, active, &actor.id) {
         Ok(_) => ApiResult::ok(true),
         Err(e) => ApiResult::err(e.to_string()),
     }
 }
 
 #[tauri::command]
-pub fn cmd_delete_profile(state: State<AppState>, actor_id: String, id: String) -> ApiResult<bool> {
+pub fn cmd_delete_profile(state: State<AppState>, session_id: String, id: String) -> ApiResult<bool> {
     let conn = state.db.lock().unwrap();
-    match profiles::delete_profile(&conn, &id, &actor_id) {
+    let actor = authorize!(conn, session_id, auth::LAB);
+    match profiles::delete_profile(&conn, &id, &actor.id) {
         Ok(_) => ApiResult::ok(true),
         Err(e) => ApiResult::err(e.to_string()),
     }
@@ -596,11 +620,12 @@ pub fn cmd_delete_profile(state: State<AppState>, actor_id: String, id: String) 
 #[tauri::command]
 pub fn cmd_create_request(
     state: State<AppState>,
-    actor_id: String,
+    session_id: String,
     request: NewRequest,
 ) -> ApiResult<RequestDetail> {
     let conn = state.db.lock().unwrap();
-    match requests::create_request(&conn, request, &actor_id) {
+    let actor = authorize!(conn, session_id, auth::FRONT_DESK);
+    match requests::create_request(&conn, request, &actor.id) {
         Ok(r) => ApiResult::ok(r),
         Err(e) => ApiResult::err(e.to_string()),
     }
@@ -609,11 +634,12 @@ pub fn cmd_create_request(
 #[tauri::command]
 pub fn cmd_create_patient_with_request(
     state: State<AppState>,
-    actor_id: String,
+    session_id: String,
     payload: NewPatientWithRequest,
 ) -> ApiResult<RequestDetail> {
     let conn = state.db.lock().unwrap();
-    match requests::create_patient_with_request(&conn, payload, &actor_id) {
+    let actor = authorize!(conn, session_id, auth::FRONT_DESK);
+    match requests::create_patient_with_request(&conn, payload, &actor.id) {
         Ok(r) => ApiResult::ok(r),
         Err(e) => ApiResult::err(e.to_string()),
     }
@@ -646,12 +672,13 @@ pub fn cmd_list_requests(
 #[tauri::command]
 pub fn cmd_update_request_status(
     state: State<AppState>,
-    actor_id: String,
+    session_id: String,
     id: String,
     status: String,
 ) -> ApiResult<bool> {
     let conn = state.db.lock().unwrap();
-    match requests::update_request_status(&conn, &id, &status, &actor_id) {
+    let actor = authorize!(conn, session_id, auth::FRONT_DESK);
+    match requests::update_request_status(&conn, &id, &status, &actor.id) {
         Ok(_) => ApiResult::ok(true),
         Err(e) => ApiResult::err(e.to_string()),
     }
@@ -660,21 +687,23 @@ pub fn cmd_update_request_status(
 #[tauri::command]
 pub fn cmd_update_item_status(
     state: State<AppState>,
-    actor_id: String,
+    session_id: String,
     item_id: String,
     status: String,
 ) -> ApiResult<bool> {
     let conn = state.db.lock().unwrap();
-    match requests::update_item_status(&conn, &item_id, &status, &actor_id) {
+    let actor = authorize!(conn, session_id, auth::STAFF);
+    match requests::update_item_status(&conn, &item_id, &status, &actor.id) {
         Ok(_) => ApiResult::ok(true),
         Err(e) => ApiResult::err(e.to_string()),
     }
 }
 
 #[tauri::command]
-pub fn cmd_delete_request(state: State<AppState>, actor_id: String, id: String) -> ApiResult<bool> {
+pub fn cmd_delete_request(state: State<AppState>, session_id: String, id: String) -> ApiResult<bool> {
     let conn = state.db.lock().unwrap();
-    match requests::delete_request(&conn, &id, &actor_id) {
+    let actor = authorize!(conn, session_id, auth::FRONT_DESK);
+    match requests::delete_request(&conn, &id, &actor.id) {
         Ok(_) => ApiResult::ok(true),
         Err(e) => ApiResult::err(e.to_string()),
     }
@@ -695,11 +724,12 @@ pub fn cmd_get_request_results(
 #[tauri::command]
 pub fn cmd_save_result(
     state: State<AppState>,
-    actor_id: String,
+    session_id: String,
     entry: SaveResult,
 ) -> ApiResult<bool> {
     let conn = state.db.lock().unwrap();
-    match results::save_result(&conn, entry, &actor_id) {
+    let actor = authorize!(conn, session_id, auth::LAB);
+    match results::save_result(&conn, entry, &actor.id) {
         Ok(_) => ApiResult::ok(true),
         Err(e) => ApiResult::err(e.to_string()),
     }
@@ -708,11 +738,12 @@ pub fn cmd_save_result(
 #[tauri::command]
 pub fn cmd_finalize_results(
     state: State<AppState>,
-    actor_id: String,
+    session_id: String,
     request_id: String,
 ) -> ApiResult<bool> {
     let conn = state.db.lock().unwrap();
-    match results::finalize_all_results(&conn, &request_id, &actor_id) {
+    let actor = authorize!(conn, session_id, auth::LAB);
+    match results::finalize_all_results(&conn, &request_id, &actor.id) {
         Ok(_) => ApiResult::ok(true),
         Err(e) => ApiResult::err(e.to_string()),
     }
@@ -721,11 +752,12 @@ pub fn cmd_finalize_results(
 #[tauri::command]
 pub fn cmd_log_report(
     state: State<AppState>,
-    actor_id: String,
+    session_id: String,
     request_id: String,
 ) -> ApiResult<bool> {
     let conn = state.db.lock().unwrap();
-    match conn.execute("INSERT INTO report_log (id, request_id, generated_by) VALUES (lower(hex(randomblob(16))), ?1, ?2)", params![request_id, actor_id]) {
+    let actor = authorize!(conn, session_id, auth::ANY);
+    match conn.execute("INSERT INTO report_log (id, request_id, generated_by) VALUES (lower(hex(randomblob(16))), ?1, ?2)", params![request_id, actor.id]) {
         Ok(_) => ApiResult::ok(true),
         Err(e) => ApiResult::err(e.to_string()),
     }
@@ -795,11 +827,12 @@ pub fn cmd_list_report_log(
 #[tauri::command]
 pub fn cmd_create_invoice(
     state: State<AppState>,
-    actor_id: String,
+    session_id: String,
     invoice: NewInvoice,
 ) -> ApiResult<InvoiceDetail> {
     let conn = state.db.lock().unwrap();
-    match billing::create_invoice(&conn, invoice, &actor_id) {
+    let actor = authorize!(conn, session_id, auth::FRONT_DESK);
+    match billing::create_invoice(&conn, invoice, &actor.id) {
         Ok(i) => ApiResult::ok(i),
         Err(e) => ApiResult::err(e.to_string()),
     }
@@ -808,7 +841,7 @@ pub fn cmd_create_invoice(
 #[tauri::command]
 pub fn cmd_update_invoice_adjustments(
     state: State<AppState>,
-    actor_id: String,
+    session_id: String,
     invoice_id: String,
     discount_type: String,
     discount_value: f64,
@@ -816,6 +849,7 @@ pub fn cmd_update_invoice_adjustments(
     additional_fees: f64,
 ) -> ApiResult<InvoiceDetail> {
     let conn = state.db.lock().unwrap();
+    let actor = authorize!(conn, session_id, auth::FRONT_DESK);
     match billing::update_invoice_adjustments(
         &conn,
         &invoice_id,
@@ -823,7 +857,7 @@ pub fn cmd_update_invoice_adjustments(
         discount_value,
         tax_percent,
         additional_fees,
-        &actor_id,
+        &actor.id,
     ) {
         Ok(i) => ApiResult::ok(i),
         Err(e) => ApiResult::err(e.to_string()),
@@ -869,11 +903,12 @@ pub fn cmd_list_invoices(
 #[tauri::command]
 pub fn cmd_record_payment(
     state: State<AppState>,
-    actor_id: String,
+    session_id: String,
     payment: NewPayment,
 ) -> ApiResult<Payment> {
     let conn = state.db.lock().unwrap();
-    match billing::record_payment(&conn, payment, &actor_id) {
+    let actor = authorize!(conn, session_id, auth::STAFF);
+    match billing::record_payment(&conn, payment, &actor.id) {
         Ok(p) => ApiResult::ok(p),
         Err(e) => ApiResult::err(e.to_string()),
     }

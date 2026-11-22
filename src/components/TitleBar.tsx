@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import { invoke } from "@tauri-apps/api/core";
 import { Minus, Square, X, Microscope, Search } from "lucide-react";
 import { useSettingsStore } from "../stores/settingsStore";
 import { useAuthStore } from "../stores/authStore";
 import "./styles/TitleBar.css";
+import { api } from "../lib/api";
 
 const appWindow = getCurrentWindow();
 
@@ -16,7 +16,6 @@ interface SearchResult {
   subtitle: string;
   extra:    string | null;
 }
-interface ApiResult<T> { ok: boolean; data: T | null; error: string | null; }
 
 const KIND_LABEL: Record<string, string> = {
   patient: "Patient", investigation: "Test", request: "Request", invoice: "Invoice", receipt: "Receipt",
@@ -35,8 +34,9 @@ export default function TitleBar() {
   useEffect(() => {
     if (!query.trim()) { setResults([]); return; }
     const t = setTimeout(async () => {
-      const res = await invoke<ApiResult<SearchResult[]>>("cmd_global_search", { query });
-      if (res.ok && res.data) { setResults(res.data); setOpen(true); }
+      const res = await api<SearchResult[]>("cmd_global_search", { query });
+      setResults(res);
+      setOpen(true);
     }, 200);
     return () => clearTimeout(t);
   }, [query]);

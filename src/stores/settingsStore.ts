@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { invoke } from "@tauri-apps/api/core";
 import { setRegional } from "../lib/format";
+import { api } from "../lib/api";
 
 interface ApiResult<T> {
   ok: boolean;
@@ -51,7 +52,7 @@ export const useSettingsStore = create<SettingsState>()((set, get) => ({
   },
 
   update: async (key, value) => {
-    await invoke("cmd_set_setting", { key, value });
+    await api("cmd_set_setting", { key, value });
     const prev = get().settings;
     if (prev) {
       const next = { ...prev, [key]: value };

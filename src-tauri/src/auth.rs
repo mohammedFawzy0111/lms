@@ -71,6 +71,22 @@ pub fn validate_session(conn: &Connection, session_id: &str) -> Result<User> {
     }
 }
 
+pub const ANY: &[&str] = &[]; // any valid session, even readonly
+pub const ADMIN: &[&str] = &["admin"];
+pub const FRONT_DESK: &[&str] = &["admin", "receptionist"];
+pub const LAB: &[&str] = &["admin", "technician"];
+pub const STAFF: &[&str] = &["admin", "technician", "receptionist"];
+
+/// Validate the session, check the role, and return the acting user.
+pub fn authorize(conn: &Connection, session_id: &str, allowed: &[&str]) -> Result<User> {
+    let user = validate_session(conn, session_id)?;
+    if !allowed.is_empty() && !allowed.contains(&user.role.as_str()) {
+        return Err(anyhow!("Your role ({}) is not allowed to do this.", user.role));
+    }
+
+    Ok(user)
+}
+
 pub fn require_admin(conn: &Connection, actor_id: &str) -> Result<()> {
     let role: String = conn
         .query_row(
