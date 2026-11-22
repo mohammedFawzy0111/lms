@@ -8,7 +8,6 @@ interface Props {
   /** null = create a new investigation */
   investigation: Investigation | null;
   categories: Category[];
-  actorId: string;
   onClose: () => void;
   onSaved: () => void;
   /** Called after a category is added from inside this form. */
@@ -20,7 +19,6 @@ const numOrNull = (v: string) => (v === "" ? null : parseFloat(v));
 export function InvestigationFormModal({
   investigation,
   categories,
-  actorId,
   onClose,
   onSaved,
   onCategoryCreated,
@@ -61,8 +59,8 @@ export function InvestigationFormModal({
     setSaving(true);
     setError(null);
     try {
-      if (isEdit) await api("cmd_update_investigation", { actorId, id: investigation.id, inv: form });
-      else await api("cmd_create_investigation", { actorId, inv: form });
+      if (isEdit) await api("cmd_update_investigation", { id: investigation.id, inv: form });
+      else await api("cmd_create_investigation", { inv: form });
       onSaved();
       onClose();
     } catch (e) {

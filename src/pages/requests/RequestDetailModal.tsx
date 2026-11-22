@@ -10,14 +10,13 @@ import type { ReportLogEntry, RequestDetail } from "./types";
 
 interface Props {
   requestId: string;
-  actorId: string;
   onClose: () => void;
   /** Called after a status change so the list behind the modal can refresh. */
   onChanged: () => void;
   onPrint: (requestId: string) => void;
 }
 
-export function RequestDetailModal({ requestId, actorId, onClose, onChanged, onPrint }: Props) {
+export function RequestDetailModal({ requestId, onClose, onChanged, onPrint }: Props) {
   const navigate = useNavigate();
   const [detail, setDetail] = useState<RequestDetail | null>(null);
   const [history, setHistory] = useState<ReportLogEntry[]>([]);
@@ -44,7 +43,7 @@ export function RequestDetailModal({ requestId, actorId, onClose, onChanged, onP
   async function update(cmd: string, args: Record<string, unknown>) {
     setError(null);
     try {
-      await api(cmd, { actorId, ...args });
+      await api(cmd, args);
       await load();
       onChanged();
     } catch (e) {

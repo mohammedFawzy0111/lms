@@ -1,7 +1,6 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { Page } from "../components/ui/Page";
 import { openReportWindow } from "../lib/printWindow";
-import { useAuthStore } from "../stores/authStore";
 import { PatientBar } from "./results/PatientBar";
 import { ResultsTable } from "./results/ResultsTable";
 import { useResultsEntry } from "./results/useResultsEntry";
@@ -10,11 +9,7 @@ import "./styles/Results.css";
 export default function Results() {
   const { requestId } = useParams<{ requestId: string }>();
   const navigate = useNavigate();
-  const actorId = useAuthStore((s) => s.session?.user.id ?? "");
-  const { data, loading, error, saving, editFor, setEdit, saveOne, finalizeAll, allFinal } = useResultsEntry(
-    requestId,
-    actorId,
-  );
+  const { data, loading, error, saving, editFor, setEdit, saveOne, finalizeAll, allFinal } = useResultsEntry(requestId);
 
   if (!data) {
     return (

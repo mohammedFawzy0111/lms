@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from "react";
 import { Page } from "../components/ui/Page";
 import { Tab, Tabs } from "../components/ui/Tabs";
 import { api, errMsg } from "../lib/api";
-import { useAuthStore } from "../stores/authStore";
 import { IndividualTests } from "./investigations/IndividualTests";
 import { InvestigationFormModal } from "./investigations/InvestigationFormModal";
 import { ProfilesView } from "./investigations/ProfilesView";
@@ -11,7 +10,6 @@ import { useInvestigationList } from "./investigations/useInvestigationList";
 import type { Category, Investigation, Profile } from "./investigations/types";
 
 export default function Investigations() {
-  const actorId = useAuthStore((s) => s.session?.user.id ?? "");
   const [view, setView] = useState<"tests" | "profiles">("tests");
   const [categories, setCategories] = useState<Category[]>([]);
   const [showForm, setShowForm] = useState<Investigation | null | "new">(null);
@@ -62,7 +60,6 @@ export default function Investigations() {
           onActive={() => setView("profiles")}
           element={
             <ProfilesView
-              actorId={actorId}
               showForm={showProfileForm}
               setShowForm={setShowProfileForm}
             />
@@ -76,7 +73,6 @@ export default function Investigations() {
         <InvestigationFormModal
           investigation={showForm === "new" ? null : showForm}
           categories={categories}
-          actorId={actorId}
           onClose={() => setShowForm(null)}
           onSaved={() => {
             list.reload();

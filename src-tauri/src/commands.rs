@@ -94,8 +94,8 @@ pub struct SearchResult {
 
 // === Auth ===
 macro_rules! authorize {
-    ($conn:expr, $seesion_id:expr, $roles:expr) => {
-        match auth::authorize(&$conn, &$seesion_id, &$roles) {
+    ($conn:expr, $session_id:expr, $roles:expr) => {
+        match auth::authorize(&$conn, &$session_id, &$roles) {
             Ok(user) => user,
             Err(e) => return ApiResult::err(e.to_string())
         }
@@ -171,8 +171,9 @@ pub fn cmd_get_settings(state: State<AppState>) -> ApiResult<LabSettings> {
 }
 
 #[tauri::command]
-pub fn cmd_set_setting(state: State<AppState>, key: String, value: String) -> ApiResult<bool> {
+pub fn cmd_set_setting(state: State<AppState>, key: String, value: String, session_id: String) -> ApiResult<bool> {
     let conn = state.db.lock().unwrap();
+    let _ = authorize!(conn, session_id, auth::ADMIN);
     match conn.execute(
         "INSERT INTO lab_settings (key, value, updated_at)
          VALUES (?1, ?2, datetime('now'))
@@ -189,8 +190,10 @@ pub fn cmd_backup_now(
     app: tauri::AppHandle,
     state: State<AppState>,
     dest_dir: String,
+    session_id: String,
 ) -> ApiResult<String> {
     let conn = state.db.lock().unwrap();
+    let _ = authorize!(conn, session_id, auth::ADMIN);
     let filename = backup::generate_backup_filename();
     let dest_path = PathBuf::from(&dest_dir).join(&filename);
 
@@ -217,7 +220,9 @@ pub fn cmd_backup_now(
 }
 
 #[tauri::command]
-pub fn cmd_list_backups(dir: String) -> ApiResult<Vec<BackupFileInfo>> {
+pub fn cmd_list_backups(state: State<AppState>, dir: String, session_id: String) -> ApiResult<Vec<BackupFileInfo>> {
+    let conn = state.db.lock().unwrap();
+    let _ = authorize!(conn, session_id, auth::ADMIN);
     let path = PathBuf::from(&dir);
     match backup::list_backups(&path) {
         Ok(list) => {
@@ -232,7 +237,9 @@ pub fn cmd_list_backups(dir: String) -> ApiResult<Vec<BackupFileInfo>> {
 }
 
 #[tauri::command]
-pub fn cmd_verify_backup(path: String) -> ApiResult<bool> {
+pub fn cmd_verify_backup(state: State<AppState>, path: String, session_id: String) -> ApiResult<bool> {
+    let conn = state.db.lock().unwrap();
+    let _ = authorize!(conn, session_id, auth::ADMIN);
     match backup::verify_backup(&PathBuf::from(path)) {
         Ok(valid) => ApiResult::ok(valid),
         Err(e) => ApiResult::err(e.to_string()),
@@ -240,7 +247,17 @@ pub fn cmd_verify_backup(path: String) -> ApiResult<bool> {
 }
 
 #[tauri::command]
-pub fn cmd_restore_backup(app: tauri::AppHandle, backup_path: String) -> ApiResult<bool> {
+pub fn cmd_restore_backup(
+    app: tauri::AppHandle,
+    state: State<AppState>,
+    session_id: String,
+    backup_path: String,
+) -> ApiResult<bool> {
+    {
+        // Check the caller, then release the lock before touching the database file.
+        let conn = state.db.lock().unwrap();
+        let _ = authorize!(conn, session_id, auth::ADMIN);
+    }
     let data_dir = match app.path().app_data_dir() {
         Ok(d) => d,
         Err(e) => return ApiResult::err(e.to_string()),
@@ -274,8 +291,9 @@ pub fn cmd_create_user(
 }
 
 #[tauri::command]
-pub fn cmd_list_users(state: State<AppState>) -> ApiResult<Vec<auth::User>> {
+pub fn cmd_list_users(state: State<AppState>, session_id: String) -> ApiResult<Vec<auth::User>> {
     let conn = state.db.lock().unwrap();
+    let _ = authorize!(conn, session_id, auth::ADMIN);
     match auth::list_users(&conn) {
         Ok(users) => ApiResult::ok(users),
         Err(e) => ApiResult::err(e.to_string()),
@@ -360,7 +378,7 @@ pub fn cmd_update_patient(
 #[tauri::command]
 pub fn cmd_delete_patient(state: State<AppState>, session_id: String, id: String) -> ApiResult<bool> {
     let conn = state.db.lock().unwrap();
-    let actor = authorize!(conn, session_id, auth:: FRONT_DESK);
+    let actor = authorize!(conn, session_id, auth::FRONT_DESK);
     match patients::delete_patient(&conn, &id, &actor.id) {
         Ok(_) => ApiResult::ok(true),
         Err(e) => ApiResult::err(e.to_string()),
@@ -368,8 +386,9 @@ pub fn cmd_delete_patient(state: State<AppState>, session_id: String, id: String
 }
 
 #[tauri::command]
-pub fn cmd_get_patient(state: State<AppState>, id: String) -> ApiResult<Patient> {
+pub fn cmd_get_patient(state: State<AppState>, id: String, session_id: String) -> ApiResult<Patient> {
     let conn = state.db.lock().unwrap();
+    let _ = authorize!(conn, session_id, auth::ANY);
     match patients::get_patient(&conn, &id) {
         Ok(p) => ApiResult::ok(p),
         Err(e) => ApiResult::err(e.to_string()),
@@ -381,8 +400,10 @@ pub fn cmd_list_patients(
     state: State<AppState>,
     limit: Option<i64>,
     offset: Option<i64>,
+    session_id: String,
 ) -> ApiResult<Vec<Patient>> {
     let conn = state.db.lock().unwrap();
+    let _ = authorize!(conn, session_id, auth::ANY);
     match patients::list_patients(&conn, limit.unwrap_or(50), offset.unwrap_or(0)) {
         Ok(list) => ApiResult::ok(list),
         Err(e) => ApiResult::err(e.to_string()),
@@ -394,8 +415,10 @@ pub fn cmd_search_patients(
     state: State<AppState>,
     query: String,
     limit: Option<i64>,
+    session_id: String,
 ) -> ApiResult<Vec<Patient>> {
     let conn = state.db.lock().unwrap();
+    let _ = authorize!(conn, session_id, auth::ANY);
     match patients::search_patients(&conn, &query, limit.unwrap_or(50)) {
         Ok(list) => ApiResult::ok(list),
         Err(e) => ApiResult::err(e.to_string()),
@@ -408,8 +431,10 @@ pub fn cmd_check_patient_duplicates(
     full_name: String,
     phone: Option<String>,
     dob: Option<String>,
+    session_id: String,
 ) -> ApiResult<Vec<DuplicateWarning>> {
     let conn = state.db.lock().unwrap();
+    let _ = authorize!(conn, session_id, auth::ANY);
     match patients::check_dublicates(&conn, &full_name, phone.as_deref(), dob.as_deref()) {
         Ok(list) => ApiResult::ok(list),
         Err(e) => ApiResult::err(e.to_string()),
@@ -417,8 +442,9 @@ pub fn cmd_check_patient_duplicates(
 }
 
 #[tauri::command]
-pub fn cmd_list_categories(state: State<AppState>) -> ApiResult<Vec<Category>> {
+pub fn cmd_list_categories(state: State<AppState>, session_id: String) -> ApiResult<Vec<Category>> {
     let conn = state.db.lock().unwrap();
+    let _ = authorize!(conn, session_id, auth::ANY);
     match investigations::list_categories(&conn) {
         Ok(list) => ApiResult::ok(list),
         Err(e) => ApiResult::err(e.to_string()),
@@ -426,8 +452,9 @@ pub fn cmd_list_categories(state: State<AppState>) -> ApiResult<Vec<Category>> {
 }
 
 #[tauri::command]
-pub fn cmd_create_category(state: State<AppState>, name: String) -> ApiResult<Category> {
+pub fn cmd_create_category(state: State<AppState>, name: String, session_id: String) -> ApiResult<Category> {
     let conn = state.db.lock().unwrap();
+    let _ = authorize!(conn, session_id, auth::ADMIN);
     match investigations::create_category(&conn, &name) {
         Ok(c) => ApiResult::ok(c),
         Err(e) => ApiResult::err(e.to_string()),
@@ -441,7 +468,7 @@ pub fn cmd_create_investigation(
     inv: NewInvestigation,
 ) -> ApiResult<Investigation> {
     let conn = state.db.lock().unwrap();
-    let actor = authorize!(conn, session_id, auth::STAFF);
+    let actor = authorize!(conn, session_id, auth::ADMIN);
     match investigations::create_investigation(&conn, inv, &actor.id) {
         Ok(i) => ApiResult::ok(i),
         Err(e) => ApiResult::err(e.to_string()),
@@ -456,7 +483,7 @@ pub fn cmd_update_investigation(
     inv: NewInvestigation,
 ) -> ApiResult<Investigation> {
     let conn = state.db.lock().unwrap();
-    let actor = authorize!(conn, session_id, auth::STAFF);
+    let actor = authorize!(conn, session_id, auth::ADMIN);
     match investigations::update_investigation(&conn, &id, inv, &actor.id) {
         Ok(i) => ApiResult::ok(i),
         Err(e) => ApiResult::err(e.to_string()),
@@ -471,7 +498,7 @@ pub fn cmd_set_investigation_active(
     active: bool,
 ) -> ApiResult<bool> {
     let conn = state.db.lock().unwrap();
-    let actor = authorize!(conn, session_id, auth::STAFF);
+    let actor = authorize!(conn, session_id, auth::ADMIN);
     match investigations::set_investigation_active(&conn, &id, active, &actor.id) {
         Ok(_) => ApiResult::ok(true),
         Err(e) => ApiResult::err(e.to_string()),
@@ -485,7 +512,7 @@ pub fn cmd_delete_investigation(
     id: String,
 ) -> ApiResult<bool> {
     let conn = state.db.lock().unwrap();
-    let actor = authorize!(conn, session_id, auth::STAFF);
+    let actor = authorize!(conn, session_id, auth::ADMIN);
     match investigations::delete_investigation(&conn, &id, &actor.id) {
         Ok(_) => ApiResult::ok(true),
         Err(e) => ApiResult::err(e.to_string()),
@@ -498,8 +525,10 @@ pub fn cmd_list_investigations(
     category_id: Option<String>,
     search: Option<String>,
     include_inactive: Option<bool>,
+    session_id: String,
 ) -> ApiResult<Vec<Investigation>> {
     let conn = state.db.lock().unwrap();
+    let _ = authorize!(conn, session_id, auth::ANY);
     match investigations::list_investigations(
         &conn,
         category_id.as_deref(),
@@ -515,8 +544,10 @@ pub fn cmd_list_investigations(
 pub fn cmd_list_reference_ranges(
     state: State<AppState>,
     investigation_id: String,
+    session_id: String,
 ) -> ApiResult<Vec<ReferenceRange>> {
     let conn = state.db.lock().unwrap();
+    let _ = authorize!(conn, session_id, auth::ANY);
     match investigations::list_reference_ranges(&conn, &investigation_id) {
         Ok(list) => ApiResult::ok(list),
         Err(e) => ApiResult::err(e.to_string()),
@@ -528,8 +559,10 @@ pub fn cmd_add_reference_range(
     state: State<AppState>,
     investigation_id: String,
     range: NewReferenceRange,
+    session_id: String,
 ) -> ApiResult<ReferenceRange> {
     let conn = state.db.lock().unwrap();
+    let _ = authorize!(conn, session_id, auth::ADMIN);
     match investigations::add_reference_range(&conn, &investigation_id, range) {
         Ok(r) => ApiResult::ok(r),
         Err(e) => ApiResult::err(e.to_string()),
@@ -537,8 +570,9 @@ pub fn cmd_add_reference_range(
 }
 
 #[tauri::command]
-pub fn cmd_delete_reference_range(state: State<AppState>, id: String) -> ApiResult<bool> {
+pub fn cmd_delete_reference_range(state: State<AppState>, id: String, session_id: String) -> ApiResult<bool> {
     let conn = state.db.lock().unwrap();
+    let _ = authorize!(conn, session_id, auth::ADMIN);
     match investigations::delete_reference_range(&conn, &id) {
         Ok(_) => ApiResult::ok(true),
         Err(e) => ApiResult::err(e.to_string()),
@@ -546,8 +580,9 @@ pub fn cmd_delete_reference_range(state: State<AppState>, id: String) -> ApiResu
 }
 
 #[tauri::command]
-pub fn cmd_list_profiles(state: State<AppState>) -> ApiResult<Vec<Profile>> {
+pub fn cmd_list_profiles(state: State<AppState>, session_id: String) -> ApiResult<Vec<Profile>> {
     let conn = state.db.lock().unwrap();
+    let _ = authorize!(conn, session_id, auth::ANY);
     match profiles::list_profiles(&conn) {
         Ok(list) => ApiResult::ok(list),
         Err(e) => ApiResult::err(e.to_string()),
@@ -555,8 +590,9 @@ pub fn cmd_list_profiles(state: State<AppState>) -> ApiResult<Vec<Profile>> {
 }
 
 #[tauri::command]
-pub fn cmd_get_profile(state: State<AppState>, id: String) -> ApiResult<ProfileWithTests> {
+pub fn cmd_get_profile(state: State<AppState>, id: String, session_id: String) -> ApiResult<ProfileWithTests> {
     let conn = state.db.lock().unwrap();
+    let _ = authorize!(conn, session_id, auth::ANY);
     match profiles::get_profile(&conn, &id) {
         Ok(p) => ApiResult::ok(p),
         Err(e) => ApiResult::err(e.to_string()),
@@ -570,7 +606,7 @@ pub fn cmd_create_profile(
     profile: NewProfile,
 ) -> ApiResult<ProfileWithTests> {
     let conn = state.db.lock().unwrap();
-    let actor = authorize!(conn, session_id, auth::LAB);
+    let actor = authorize!(conn, session_id, auth::ADMIN);
     match profiles::create_profile(&conn, profile, &actor.id) {
         Ok(p) => ApiResult::ok(p),
         Err(e) => ApiResult::err(e.to_string()),
@@ -585,7 +621,7 @@ pub fn cmd_update_profile(
     profile: NewProfile,
 ) -> ApiResult<ProfileWithTests> {
     let conn = state.db.lock().unwrap();
-    let actor = authorize!(conn, session_id, auth::LAB);
+    let actor = authorize!(conn, session_id, auth::ADMIN);
     match profiles::update_profile(&conn, &id, profile, &actor.id) {
         Ok(p) => ApiResult::ok(p),
         Err(e) => ApiResult::err(e.to_string()),
@@ -600,7 +636,7 @@ pub fn cmd_set_profile_active(
     active: bool,
 ) -> ApiResult<bool> {
     let conn = state.db.lock().unwrap();
-    let actor = authorize!(conn, session_id, auth::LAB);
+    let actor = authorize!(conn, session_id, auth::ADMIN);
     match profiles::set_profile_active(&conn, &id, active, &actor.id) {
         Ok(_) => ApiResult::ok(true),
         Err(e) => ApiResult::err(e.to_string()),
@@ -610,7 +646,7 @@ pub fn cmd_set_profile_active(
 #[tauri::command]
 pub fn cmd_delete_profile(state: State<AppState>, session_id: String, id: String) -> ApiResult<bool> {
     let conn = state.db.lock().unwrap();
-    let actor = authorize!(conn, session_id, auth::LAB);
+    let actor = authorize!(conn, session_id, auth::ADMIN);
     match profiles::delete_profile(&conn, &id, &actor.id) {
         Ok(_) => ApiResult::ok(true),
         Err(e) => ApiResult::err(e.to_string()),
@@ -646,8 +682,9 @@ pub fn cmd_create_patient_with_request(
 }
 
 #[tauri::command]
-pub fn cmd_get_request(state: State<AppState>, id: String) -> ApiResult<RequestDetail> {
+pub fn cmd_get_request(state: State<AppState>, id: String, session_id: String) -> ApiResult<RequestDetail> {
     let conn = state.db.lock().unwrap();
+    let _ = authorize!(conn, session_id, auth::ANY);
     match requests::get_request(&conn, &id) {
         Ok(r) => ApiResult::ok(r),
         Err(e) => ApiResult::err(e.to_string()),
@@ -660,8 +697,10 @@ pub fn cmd_list_requests(
     status: Option<String>,
     search: Option<String>,
     limit: Option<i64>,
+    session_id: String,
 ) -> ApiResult<Vec<LabRequest>> {
     let conn = state.db.lock().unwrap();
+    let _ = authorize!(conn, session_id, auth::ANY);
     match requests::list_requests(&conn, status.as_deref(), search.as_deref(), limit.unwrap_or(100))
     {
         Ok(list) => ApiResult::ok(list),
@@ -677,7 +716,7 @@ pub fn cmd_update_request_status(
     status: String,
 ) -> ApiResult<bool> {
     let conn = state.db.lock().unwrap();
-    let actor = authorize!(conn, session_id, auth::FRONT_DESK);
+    let actor = authorize!(conn, session_id, auth::STAFF);
     match requests::update_request_status(&conn, &id, &status, &actor.id) {
         Ok(_) => ApiResult::ok(true),
         Err(e) => ApiResult::err(e.to_string()),
@@ -702,7 +741,7 @@ pub fn cmd_update_item_status(
 #[tauri::command]
 pub fn cmd_delete_request(state: State<AppState>, session_id: String, id: String) -> ApiResult<bool> {
     let conn = state.db.lock().unwrap();
-    let actor = authorize!(conn, session_id, auth::FRONT_DESK);
+    let actor = authorize!(conn, session_id, auth::ADMIN);
     match requests::delete_request(&conn, &id, &actor.id) {
         Ok(_) => ApiResult::ok(true),
         Err(e) => ApiResult::err(e.to_string()),
@@ -713,8 +752,10 @@ pub fn cmd_delete_request(state: State<AppState>, session_id: String, id: String
 pub fn cmd_get_request_results(
     state: State<AppState>,
     request_id: String,
+    session_id: String,
 ) -> ApiResult<RequestResultsView> {
     let conn = state.db.lock().unwrap();
+    let _ = authorize!(conn, session_id, auth::ANY);
     match results::get_request_results(&conn, &request_id) {
         Ok(r) => ApiResult::ok(r),
         Err(e) => ApiResult::err(e.to_string()),
@@ -756,7 +797,7 @@ pub fn cmd_log_report(
     request_id: String,
 ) -> ApiResult<bool> {
     let conn = state.db.lock().unwrap();
-    let actor = authorize!(conn, session_id, auth::ANY);
+    let actor = authorize!(conn, session_id, auth::STAFF);
     match conn.execute("INSERT INTO report_log (id, request_id, generated_by) VALUES (lower(hex(randomblob(16))), ?1, ?2)", params![request_id, actor.id]) {
         Ok(_) => ApiResult::ok(true),
         Err(e) => ApiResult::err(e.to_string()),
@@ -764,8 +805,9 @@ pub fn cmd_log_report(
 }
 
 #[tauri::command]
-pub fn cmd_get_print_data(state: State<AppState>, request_id: String) -> ApiResult<PrintData> {
+pub fn cmd_get_print_data(state: State<AppState>, request_id: String, session_id: String) -> ApiResult<PrintData> {
     let conn = state.db.lock().unwrap();
+    let _ = authorize!(conn, session_id, auth::ANY);
 
     let results = match results::get_request_results(&conn, &request_id) {
         Ok(r) => r,
@@ -798,8 +840,10 @@ pub fn cmd_get_print_data(state: State<AppState>, request_id: String) -> ApiResu
 pub fn cmd_list_report_log(
     state: State<AppState>,
     request_id: String,
+    session_id: String,
 ) -> ApiResult<Vec<ReportLogEntry>> {
     let conn = state.db.lock().unwrap();
+    let _ = authorize!(conn, session_id, auth::ANY);
     let mut stmt = match conn.prepare(
         "SELECT rl.id, rl.generated_by, u.full_name, rl.generated_at FROM report_log rl
         LEFT JOIN users u ON u.id = rl.generated_by
@@ -865,8 +909,9 @@ pub fn cmd_update_invoice_adjustments(
 }
 
 #[tauri::command]
-pub fn cmd_get_invoice(state: State<AppState>, id: String) -> ApiResult<InvoiceDetail> {
+pub fn cmd_get_invoice(state: State<AppState>, id: String, session_id: String) -> ApiResult<InvoiceDetail> {
     let conn = state.db.lock().unwrap();
+    let _ = authorize!(conn, session_id, auth::FRONT_DESK);
     match billing::get_invoice(&conn, &id) {
         Ok(i) => ApiResult::ok(i),
         Err(e) => ApiResult::err(e.to_string()),
@@ -877,8 +922,10 @@ pub fn cmd_get_invoice(state: State<AppState>, id: String) -> ApiResult<InvoiceD
 pub fn cmd_get_invoice_by_request(
     state: State<AppState>,
     request_id: String,
+    session_id: String,
 ) -> ApiResult<Option<String>> {
     let conn = state.db.lock().unwrap();
+    let _ = authorize!(conn, session_id, auth::FRONT_DESK);
     match billing::get_invoice_by_request(&conn, &request_id) {
         Ok(id) => ApiResult::ok(id),
         Err(e) => ApiResult::err(e.to_string()),
@@ -891,8 +938,10 @@ pub fn cmd_list_invoices(
     status: Option<String>,
     search: Option<String>,
     limit: Option<i64>,
+    session_id: String,
 ) -> ApiResult<Vec<Invoice>> {
     let conn = state.db.lock().unwrap();
+    let _ = authorize!(conn, session_id, auth::FRONT_DESK);
     match billing::list_invoices(&conn, status.as_deref(), search.as_deref(), limit.unwrap_or(100))
     {
         Ok(list) => ApiResult::ok(list),
@@ -907,7 +956,7 @@ pub fn cmd_record_payment(
     payment: NewPayment,
 ) -> ApiResult<Payment> {
     let conn = state.db.lock().unwrap();
-    let actor = authorize!(conn, session_id, auth::STAFF);
+    let actor = authorize!(conn, session_id, auth::FRONT_DESK);
     match billing::record_payment(&conn, payment, &actor.id) {
         Ok(p) => ApiResult::ok(p),
         Err(e) => ApiResult::err(e.to_string()),
@@ -915,8 +964,9 @@ pub fn cmd_record_payment(
 }
 
 #[tauri::command]
-pub fn cmd_get_payment(state: State<AppState>, id: String) -> ApiResult<Payment> {
+pub fn cmd_get_payment(state: State<AppState>, id: String, session_id: String) -> ApiResult<Payment> {
     let conn = state.db.lock().unwrap();
+    let _ = authorize!(conn, session_id, auth::FRONT_DESK);
     match billing::get_payment(&conn, &id) {
         Ok(p) => ApiResult::ok(p),
         Err(e) => ApiResult::err(e.to_string()),
@@ -924,8 +974,9 @@ pub fn cmd_get_payment(state: State<AppState>, id: String) -> ApiResult<Payment>
 }
 
 #[tauri::command]
-pub fn cmd_get_dashboard_stats(state: State<AppState>) -> ApiResult<DashboardStats> {
+pub fn cmd_get_dashboard_stats(state: State<AppState>, session_id: String) -> ApiResult<DashboardStats> {
     let conn = state.db.lock().unwrap();
+    let _ = authorize!(conn, session_id, auth::ANY);
 
     // Single query with 6 scalar subqueries — one round-trip instead of 6.
     match conn.query_row(
@@ -958,8 +1009,10 @@ pub fn cmd_get_dashboard_stats(state: State<AppState>) -> ApiResult<DashboardSta
 pub fn cmd_get_recent_activity(
     state: State<AppState>,
     limit: Option<i64>,
+    session_id: String,
 ) -> ApiResult<Vec<RecentActivityEntry>> {
     let conn = state.db.lock().unwrap();
+    let _ = authorize!(conn, session_id, auth::ANY);
     let mut stmt = match conn.prepare(
         "SELECT a.action, a.entity_type, u.full_name, a.created_at
         FROM audit_log a LEFT JOIN users u ON u.id = a.user_id
@@ -988,8 +1041,10 @@ pub fn cmd_get_recent_activity(
 pub fn cmd_get_pending_results(
     state: State<AppState>,
     limit: Option<i64>,
+    session_id: String,
 ) -> ApiResult<Vec<PendingResultEntry>> {
     let conn = state.db.lock().unwrap();
+    let _ = authorize!(conn, session_id, auth::ANY);
     let mut stmt = match conn.prepare(
         "SELECT r.id, r.request_no, p.full_name, i.test_name, r.priority
         FROM lab_request_items ri 
@@ -1021,8 +1076,9 @@ pub fn cmd_get_pending_results(
 }
 
 #[tauri::command]
-pub fn cmd_global_search(state: State<AppState>, query: String) -> ApiResult<Vec<SearchResult>> {
+pub fn cmd_global_search(state: State<AppState>, query: String, session_id: String) -> ApiResult<Vec<SearchResult>> {
     let conn = state.db.lock().unwrap();
+    let _ = authorize!(conn, session_id, auth::ANY);
 
     let Some(m) = crate::search::to_match(&query) else {
         return ApiResult::ok(vec![]);

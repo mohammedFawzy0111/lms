@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { CatTabs } from "../components/ui/CatTabs";
 import { Page } from "../components/ui/Page";
 import { openReportsWindow, openReportWindow } from "../lib/printWindow";
-import { useAuthStore } from "../stores/authStore";
 import { NewRequestModal } from "./requests/NewRequestModal";
 import { RequestDetailModal } from "./requests/RequestDetailModal";
 import { RequestsTable } from "./requests/RequestsTable";
@@ -13,7 +12,6 @@ import "./styles/Requests.css";
 
 export default function Requests() {
   const navigate = useNavigate();
-  const actorId = useAuthStore((s) => s.session?.user.id ?? "");
   const { requests, loading, error, load, reload } = useRequestList();
 
   const [statusFilter, setStatusFilter] = useState("");
@@ -99,7 +97,6 @@ export default function Requests() {
 
       {showNew && (
         <NewRequestModal
-          actorId={actorId}
           onClose={() => setShowNew(false)}
           onSaved={reload}
         />
@@ -108,7 +105,6 @@ export default function Requests() {
       {detailId && (
         <RequestDetailModal
           requestId={detailId}
-          actorId={actorId}
           onClose={() => setDetailId(null)}
           onChanged={reload}
           onPrint={openReportWindow}

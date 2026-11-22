@@ -11,14 +11,13 @@ import type { AdjustmentDraft, InvoiceDetail, Payment } from "./types";
 
 interface Props {
   invoiceId: string;
-  actorId: string;
   onClose: () => void;
   onChanged: () => void;
 }
 
 const num = (s: string) => parseFloat(s) || 0;
 
-export function InvoiceDetailModal({ invoiceId, actorId, onClose, onChanged }: Props) {
+export function InvoiceDetailModal({ invoiceId, onClose, onChanged }: Props) {
   const [detail, setDetail] = useState<InvoiceDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [adj, setAdj] = useState<AdjustmentDraft>({
@@ -59,7 +58,6 @@ export function InvoiceDetailModal({ invoiceId, actorId, onClose, onChanged }: P
     setError(null);
     try {
       await api("cmd_update_invoice_adjustments", {
-        actorId,
         invoiceId,
         discountType: adj.discountType,
         discountValue: num(adj.discountValue),
@@ -86,7 +84,6 @@ export function InvoiceDetailModal({ invoiceId, actorId, onClose, onChanged }: P
     setError(null);
     try {
       const payment = await api<Payment>("cmd_record_payment", {
-        actorId,
         payment: {
           invoice_id: invoiceId,
           amount,

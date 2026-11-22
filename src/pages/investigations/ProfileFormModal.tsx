@@ -7,12 +7,11 @@ import type { Investigation, NewProfile, Profile, ProfileWithTests } from "./typ
 interface Props {
   /** null = create a new profile */
   profile: Profile | null;
-  actorId: string;
   onClose: () => void;
   onSaved: () => void;
 }
 
-export function ProfileFormModal({ profile, actorId, onClose, onSaved }: Props) {
+export function ProfileFormModal({ profile, onClose, onSaved }: Props) {
   const isEdit = !!profile;
   const [name, setName] = useState(profile?.name ?? "");
   const [description, setDescription] = useState(profile?.description ?? "");
@@ -65,8 +64,8 @@ export function ProfileFormModal({ profile, actorId, onClose, onSaved }: Props) 
       investigation_ids: Array.from(selected),
     };
     try {
-      if (profile) await api("cmd_update_profile", { actorId, id: profile.id, profile: payload });
-      else await api("cmd_create_profile", { actorId, profile: payload });
+      if (profile) await api("cmd_update_profile", { id: profile.id, profile: payload });
+      else await api("cmd_create_profile", { profile: payload });
       onSaved();
       onClose();
     } catch (e) {

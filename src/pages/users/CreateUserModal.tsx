@@ -7,14 +7,13 @@ import type { User } from "../../stores/authStore";
 import { ROLES } from "./constants";
 
 interface Props {
-  actorId: string;
   onClose: () => void;
   onCreated: () => void;
 }
 
 const FORM_ID = "create-user-form";
 
-export function CreateUserModal({ actorId, onClose, onCreated }: Props) {
+export function CreateUserModal({ onClose, onCreated }: Props) {
   const [form, setForm] = useState({ full_name: "", username: "", password: "", role: "technician" });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -29,7 +28,6 @@ export function CreateUserModal({ actorId, onClose, onCreated }: Props) {
     setError(null);
     try {
       await api<User>("cmd_create_user", {
-        actorId,
         username: form.username.trim(),
         password: form.password,
         fullName: form.full_name.trim(),

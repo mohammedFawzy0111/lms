@@ -6,13 +6,11 @@ import { ProfileFormModal } from "./ProfileFormModal";
 import type { Profile } from "./types";
 
 interface Props {
-  actorId: string;
-  /** Lives in the page so the header's "+ New Profile" button can open it. */
   showForm: Profile | null | "new";
   setShowForm: (v: Profile | null | "new") => void;
 }
 
-export function ProfilesView({ actorId, showForm, setShowForm }: Props) {
+export function ProfilesView({ showForm, setShowForm }: Props) {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -42,11 +40,11 @@ export function ProfilesView({ actorId, showForm, setShowForm }: Props) {
   }
 
   const toggleActive = (p: Profile) =>
-    run(() => api("cmd_set_profile_active", { actorId, id: p.id, active: !p.is_active }));
+    run(() => api("cmd_set_profile_active", { id: p.id, active: !p.is_active }));
 
   const remove = (p: Profile) => {
     if (!confirm(`Delete profile "${p.name}"? This won't delete the underlying tests.`)) return;
-    return run(() => api("cmd_delete_profile", { actorId, id: p.id }));
+    return run(() => api("cmd_delete_profile", { id: p.id }));
   };
 
   return (
@@ -91,7 +89,6 @@ export function ProfilesView({ actorId, showForm, setShowForm }: Props) {
       {showForm && (
         <ProfileFormModal
           profile={showForm === "new" ? null : showForm}
-          actorId={actorId}
           onClose={() => setShowForm(null)}
           onSaved={load}
         />

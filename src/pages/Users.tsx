@@ -20,7 +20,6 @@ export default function Users() {
     if (!currentUser) return;
     try {
       await api("cmd_set_user_active", {
-        actorId: currentUser.id,
         targetId: u.id,
         active: !u.is_active,
       });
@@ -54,7 +53,6 @@ export default function Users() {
 
       {showCreate && (
         <CreateUserModal
-          actorId={currentUser?.id ?? ""}
           onClose={() => setShowCreate(false)}
           onCreated={reload}
         />
@@ -62,14 +60,12 @@ export default function Users() {
       {passwordFor && (
         <ChangePasswordModal
           user={passwordFor}
-          actorId={currentUser?.id ?? ""}
           onClose={() => setPasswordFor(null)}
         />
       )}
       {resetFor && (
         <ResetPasswordModal
           user={resetFor}
-          actorId={currentUser?.id ?? ""}
           onClose={() => setResetFor(null)}
         />
       )}

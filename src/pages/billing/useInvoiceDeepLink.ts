@@ -9,7 +9,6 @@ import type { InvoiceDetail } from "./types";
  */
 export function useInvoiceDeepLink(
   requestId: string | null,
-  actorId: string | undefined,
   onOpen: (invoiceId: string) => void,
   onCreated: () => void,
   onError: (msg: string) => void,
@@ -17,7 +16,7 @@ export function useInvoiceDeepLink(
   const handled = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!requestId || !actorId || handled.current === requestId) return;
+    if (!requestId || handled.current === requestId) return;
     handled.current = requestId;
 
     (async () => {
@@ -26,7 +25,6 @@ export function useInvoiceDeepLink(
         if (existing) return onOpen(existing);
 
         const created = await api<InvoiceDetail>("cmd_create_invoice", {
-          actorId,
           invoice: {
             request_id: requestId,
             discount_type: "fixed",
@@ -42,5 +40,5 @@ export function useInvoiceDeepLink(
         onError(errMsg(e));
       }
     })();
-  }, [requestId, actorId, onOpen, onCreated, onError]);
+  }, [requestId, onOpen, onCreated, onError]);
 }

@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Page } from "../components/ui/Page";
 import { api, errMsg } from "../lib/api";
-import { useAuthStore } from "../stores/authStore";
 import { PatientDetailModal } from "./patients/PatientDetailModal";
 import { PatientFormModal } from "./patients/PatientFormModal";
 import { PatientsTable } from "./patients/PatientsTable";
@@ -10,7 +9,6 @@ import { usePatientList } from "./patients/usePatientList";
 import "./styles/Patients.css";
 
 export default function Patients() {
-  const actorId = useAuthStore((s) => s.session?.user.id ?? "");
   const { patients, loading, error, setError, load, reload } = usePatientList();
 
   const [query, setQuery] = useState("");
@@ -24,10 +22,9 @@ export default function Patients() {
   }, [query, load]);
 
   async function handleDelete(p: Patient) {
-    if (!actorId) return;
     if (!confirm(`Delete patient ${p.full_name} (${p.patient_no})? This cannot be undone.`)) return;
     try {
-      await api("cmd_delete_patient", { actorId, id: p.id });
+      await api("cmd_delete_patient", { id: p.id });
       reload();
     } catch (e) {
       setError(errMsg(e));
@@ -60,7 +57,6 @@ export default function Patients() {
       {form && (
         <PatientFormModal
           patient={form === "new" ? null : form}
-          actorId={actorId}
           onClose={() => setForm(null)}
           onSaved={reload}
         />

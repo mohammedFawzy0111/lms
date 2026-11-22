@@ -10,11 +10,10 @@ const FORM_ID = "reset-password-form";
 
 interface Props {
   user: User;
-  actorId: string;
   onClose: () => void;
 }
 
-export function ResetPasswordModal({ user, actorId, onClose }: Props) {
+export function ResetPasswordModal({ user, onClose }: Props) {
   const [newPass, setNewPass] = useState("");
   const [confirmPass, setConfirmPass] = useState("");
   const [saving, setSaving] = useState(false);
@@ -39,7 +38,6 @@ export function ResetPasswordModal({ user, actorId, onClose }: Props) {
     try {
       await api("cmd_reset_password", {
         userId: user.id,
-        actorId,
         newPassword: newPass,
       });
       setDone(true);

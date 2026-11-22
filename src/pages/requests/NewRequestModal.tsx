@@ -16,7 +16,6 @@ import type {
 } from "./types";
 
 interface Props {
-  actorId: string;
   onClose: () => void;
   onSaved: () => void;
 }
@@ -26,7 +25,7 @@ type Mode = "existing" | "new";
 /** Everything the backend needs besides who the patient is. */
 const emptyOrder = { priority: "normal", collectionDate: "", dueDate: "", notes: "" };
 
-export function NewRequestModal({ actorId, onClose, onSaved }: Props) {
+export function NewRequestModal({ onClose, onSaved }: Props) {
   const [mode, setMode] = useState<Mode>("existing");
   const [patient, setPatient] = useState<PatientHit | null>(null);
   const [newPatient, setNewPatient] = useState<NewPatientForm>(EMPTY_NEW_PATIENT);
@@ -120,12 +119,10 @@ export function NewRequestModal({ actorId, onClose, onSaved }: Props) {
     try {
       if (mode === "existing") {
         await api("cmd_create_request", {
-          actorId,
           request: { patient_id: patient!.id, ...shared },
         });
       } else {
         await api("cmd_create_patient_with_request", {
-          actorId,
           payload: {
             patient: {
               full_name: newPatient.full_name,

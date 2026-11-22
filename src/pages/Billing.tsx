@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { CatTabs } from "../components/ui/CatTabs";
 import { Page } from "../components/ui/Page";
-import { useAuthStore } from "../stores/authStore";
 import { InvoiceDetailModal } from "./billing/InvoiceDetailModal";
 import { InvoicesTable } from "./billing/InvoicesTable";
 import { STATUSES, STATUS_LABELS } from "./billing/constants";
@@ -12,7 +11,6 @@ import "./styles/Billing.css";
 
 export default function Billing() {
   const [searchParams] = useSearchParams();
-  const actorId = useAuthStore((s) => s.session?.user.id);
   const { invoices, loading, error, load, reload } = useInvoiceList();
 
   const [statusFilter, setStatusFilter] = useState("");
@@ -28,7 +26,6 @@ export default function Billing() {
 
   useInvoiceDeepLink(
     searchParams.get("request"),
-    actorId,
     useCallback((id: string) => setDetailId(id), []),
     reload,
     setLinkError,
@@ -53,7 +50,6 @@ export default function Billing() {
       {detailId && (
         <InvoiceDetailModal
           invoiceId={detailId}
-          actorId={actorId ?? ""}
           onClose={() => setDetailId(null)}
           onChanged={reload}
         />

@@ -15,7 +15,7 @@ import {
  * State and actions for entering results on one request.
  * `saving` is the request_item_id being saved, "all" while finalizing, or null.
  */
-export function useResultsEntry(requestId: string | undefined, actorId: string) {
+export function useResultsEntry(requestId: string | undefined) {
   const [data, setData] = useState<RequestResultsView | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -68,7 +68,6 @@ export function useResultsEntry(requestId: string | undefined, actorId: string) 
   }
 
   async function saveOne(r: TestResult, isDraft: boolean) {
-    if (!actorId) return;
     const edit = editFor(r);
     if (!isDraft && !hasValue(r, edit)) {
       return setError(`Enter a result for ${r.test_name} before finalizing it.`);
@@ -76,7 +75,7 @@ export function useResultsEntry(requestId: string | undefined, actorId: string) 
     setSaving(r.request_item_id);
     setError(null);
     try {
-      await api("cmd_save_result", { actorId, entry: toEntry(r, edit, isDraft) });
+      await api("cmd_save_result", { entry: toEntry(r, edit, isDraft) });
       await load([r.request_item_id]);
     } catch (e) {
       setError(errMsg(e));
@@ -86,7 +85,7 @@ export function useResultsEntry(requestId: string | undefined, actorId: string) 
   }
 
   async function finalizeAll() {
-    if (!actorId || !requestId || !data) return;
+    if (!requestId || !data) return;
     const pending = data.results.filter((r) => !isFinal(r));
     const missing = pending.filter((r) => !hasValue(r, editFor(r)));
     if (missing.length > 0) {
@@ -97,9 +96,9 @@ export function useResultsEntry(requestId: string | undefined, actorId: string) 
     try {
       // Only rows that are still open; final rows are locked and must not be rewritten.
       for (const r of pending) {
-        await api("cmd_save_result", { actorId, entry: toEntry(r, editFor(r), false) });
+        await api("cmd_save_result", { entry: toEntry(r, editFor(r), false) });
       }
-      await api("cmd_finalize_results", { actorId, requestId });
+      await api("cmd_finalize_results", { requestId });
       await load("all");
     } catch (e) {
       setError(errMsg(e));

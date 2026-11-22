@@ -1,6 +1,6 @@
 # Derive the acting user from the session, not from an actor_id sent by the frontend
 
-- STATUS: OPEN
+- STATUS: CLOSED
 - PRIORITY: 60
 - TAGS: backend,frontend,security
 

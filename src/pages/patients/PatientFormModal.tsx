@@ -7,7 +7,6 @@ import type { DuplicateWarning, NewPatient, Patient } from "./types";
 
 interface Props {
   patient: Patient | null;
-  actorId: string;
   onClose: () => void;
   onSaved: () => void;
 }
@@ -43,7 +42,7 @@ function toPayload(d: Draft): NewPatient {
   };
 }
 
-export function PatientFormModal({ patient, actorId, onClose, onSaved }: Props) {
+export function PatientFormModal({ patient, onClose, onSaved }: Props) {
   const isEdit = !!patient;
   const [form, setForm] = useState<Draft>({
     full_name: patient?.full_name ?? "",
@@ -94,9 +93,9 @@ export function PatientFormModal({ patient, actorId, onClose, onSaved }: Props) 
       if (!confirmed && !(await passesDuplicateCheck())) return;
       const payload = toPayload(form);
       if (isEdit) {
-        await api("cmd_update_patient", { actorId, id: patient!.id, patient: payload });
+        await api("cmd_update_patient", { id: patient!.id, patient: payload });
       } else {
-        await api("cmd_create_patient", { actorId, patient: payload });
+        await api("cmd_create_patient", { patient: payload });
       }
       onSaved();
       onClose();

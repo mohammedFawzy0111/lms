@@ -34,9 +34,13 @@ export default function TitleBar() {
   useEffect(() => {
     if (!query.trim()) { setResults([]); return; }
     const t = setTimeout(async () => {
-      const res = await api<SearchResult[]>("cmd_global_search", { query });
-      setResults(res);
-      setOpen(true);
+      try {
+        const res = await api<SearchResult[]>("cmd_global_search", { query });
+        setResults(res);
+        setOpen(true);
+      } catch {
+        setResults([]);
+      }
     }, 200);
     return () => clearTimeout(t);
   }, [query]);

@@ -23,3 +23,7 @@ export async function api<T>(cmd: string, args: Record<string, unknown> = {}): P
   }
   return res.data as T;
 }
+/** Tauri rejects with plain strings, other code throws Errors; handle both. */
+export function errMsg(e: unknown): string {
+  return e instanceof Error ? e.message : String(e);
+}

@@ -4,7 +4,6 @@ import { DataTable } from "../../components/ui/CustomTable";
 import { StatusBadge } from "../../components/ui/StatusBadge";
 import { api, errMsg } from "../../lib/api";
 import { money } from "../../lib/format";
-import { useAuthStore } from "../../stores/authStore";
 import type { Category, Investigation } from "./types";
 import type { useInvestigationList } from "./useInvestigationList";
 
@@ -16,7 +15,6 @@ interface Props {
 }
 
 export function IndividualTests({ categories, list, onEdit, onRanges }: Props) {
-  const actorId = useAuthStore((s) => s.session?.user.id);
   const { items, loading, load, reload, setError } = list;
   const [activeCat, setActiveCat] = useState<string | null>(null);
   const [query, setQuery] = useState("");
@@ -39,7 +37,6 @@ export function IndividualTests({ categories, list, onEdit, onRanges }: Props) {
   const toggleActive = (inv: Investigation) =>
     run(() =>
       api("cmd_set_investigation_active", {
-        actorId,
         id: inv.id,
         active: !inv.is_active,
       }),
@@ -48,7 +45,7 @@ export function IndividualTests({ categories, list, onEdit, onRanges }: Props) {
   const remove = (inv: Investigation) => {
     if (!confirm(`Delete "${inv.test_name}" (${inv.test_code})? This removes its reference ranges too.`))
       return;
-    return run(() => api("cmd_delete_investigation", { actorId, id: inv.id }));
+    return run(() => api("cmd_delete_investigation", { id: inv.id }));
   };
 
   return (

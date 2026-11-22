@@ -2,7 +2,6 @@ import { useMemo } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { Notice } from "../components/ui/Notice";
 import { api } from "../lib/api";
-import { useAuthStore } from "../stores/authStore";
 import { PrintFrame, PrintMessage } from "./print/PrintFrame";
 import { MarginControls, ModeSwitch } from "./print/report/PrintControls";
 import { ReportSheet } from "./print/report/ReportSheet";
@@ -24,7 +23,6 @@ export default function PrintReport() {
     [requestId, idsParam],
   );
 
-  const actorId = useAuthStore((s) => s.session?.user.id) ?? "";
   const { items, failed, loading } = usePrintData(ids);
   const layout = usePrintLayout();
   const printedAt = useMemo(() => new Date(), []);
@@ -46,7 +44,7 @@ export default function PrintReport() {
   function handlePrint() {
     // Logging is best effort; it must never block printing.
     items.forEach((it) =>
-      api("cmd_log_report", { actorId, requestId: it.id }).catch(() => {}),
+      api("cmd_log_report", { requestId: it.id }).catch(() => {}),
     );
     window.print();
   }
