@@ -24,24 +24,39 @@ pub struct AppState {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    // setting up the log file
-    let log_path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("lms-debug.log");
-    let log_file = std::fs::File::create(&log_path).expect("Failed to create log file");
-
-    tracing_subscriber::fmt()
-        .with_writer(log_file)
-        .with_ansi(false)
-        .with_env_filter(
-            tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new("debug")),
-        )
-        .init();
-    tracing::info!("=== LMS starting, logging to {:?} ===", log_path);
-
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
+            // ---- logging: app log dir (never a compile-time path) ----
+            let log_dir = app.path().app_log_dir().expect("could not resolve log directory");
+            let _ = std::fs::create_dir_all(&log_dir);
+            let log_path = log_dir.join("lms.log");
+
+            let default_level = if cfg!(debug_assertions) { "debug" } else { "info" };
+            let filter = tracing_subscriber::EnvFilter::try_from_default_env()
+                .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new(default_level));
+
+            match std::fs::File::create(&log_path) {
+                Ok(file) => {
+                    let _ = tracing_subscriber::fmt()
+                        .with_writer(file)
+                        .with_ansi(false)
+                        .with_env_filter(filter)
+                        .try_init();
+                }
+                Err(e) => {
+                    // never abort because logging failed; fall back to stderr
+                    let _ = tracing_subscriber::fmt().with_env_filter(filter).try_init();
+                    eprintln!("could not create log file {:?}: {}", log_path, e);
+                }
+            }
+            tracing::info!(
+                "=== LMS {} starting, logging to {:?} ===",
+                env!("CARGO_PKG_VERSION"),
+                log_path
+            );
+
             let data_dir = app.path().app_data_dir().expect("could not resolve app data directory");
 
             std::fs::create_dir_all(&data_dir)?;
@@ -73,26 +88,26 @@ pub fn run() {
 
             // --------Auto backup check -----
             let backup_auto: String = conn.query_row(
-                "SELECT value FROM lab_sittings WHERE key = 'backup_auto'",
+                "SELECT value FROM lab_settings WHERE key = 'backup_auto'",
                 [],
                 |r| r.get::<_, Option<String>>(0)
             ).ok().flatten().unwrap_or_default();
 
             if backup_auto == "1" { 
                 let backup_dir: String = conn.query_row(
-                    "SELECT value FROM lab_sittings WHERE key = 'backup_dir'",
+                    "SELECT value FROM lab_settings WHERE key = 'backup_dir'",
                     [],
                     |r| r.get::<_, Option<String>>(0)
                 ).ok().flatten().unwrap_or_default();
 
                 let interval_hours: i64= conn.query_row(
-                    "SELECT value FROM lab_sittings WHERE key = 'backup_interval'",
+                    "SELECT value FROM lab_settings WHERE key = 'backup_interval'",
                     [],
                     |r| r.get::<_, Option<String>>(0)
                 ).ok().flatten().and_then(|v| v.parse().ok()).unwrap_or(24);
 
                 let last_backup: Option<String> = conn.query_row(
-                    "SELECT value FROM lab_sittings WHERE key = 'last_backup_at'",
+                    "SELECT value FROM lab_settings WHERE key = 'last_backup_at'",
                     [],
                     |r| r.get::<_, Option<String>>(0)
                 ).ok().flatten();
