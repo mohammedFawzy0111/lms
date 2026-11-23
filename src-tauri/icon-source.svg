@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#16263d"/>
+      <stop offset="1" stop-color="#0b1422"/>
+    </linearGradient>
+    <linearGradient id="liq" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#38d6f5"/>
+      <stop offset="1" stop-color="#1590c8"/>
+    </linearGradient>
+    <clipPath id="fl">
+      <path d="M416 230v212L252 716c-34 56 6 126 72 126h376c66 0 106-70 72-126L608 442V230z"/>
+    </clipPath>
+  </defs>
+  <rect width="1024" height="1024" rx="228" fill="url(#bg)"/>
+  <g clip-path="url(#fl)">
+    <rect x="200" y="0" width="624" height="1024" fill="#ffffff" fill-opacity="0.07"/>
+    <path d="M200 610c80-34 150 34 230 0s150-34 230 0 110 24 164 0V900H200z" fill="url(#liq)"/>
+  </g>
+  <path d="M416 230v212L252 716c-34 56 6 126 72 126h376c66 0 106-70 72-126L608 442V230" fill="none" stroke="#e8f4fb" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M376 230h272" stroke="#e8f4fb" stroke-width="40" stroke-linecap="round"/>
+  <circle cx="470" cy="700" r="26" fill="#e8f4fb" fill-opacity="0.85"/>
+  <circle cx="560" cy="760" r="18" fill="#e8f4fb" fill-opacity="0.7"/>
+  <circle cx="610" cy="672" r="14" fill="#e8f4fb" fill-opacity="0.6"/>
+</svg>
