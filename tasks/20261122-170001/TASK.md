@@ -1,6 +1,6 @@
 # Release build does not compile: WIPE_ON_START only exists in debug
 
-- STATUS: OPEN
+- STATUS: CLOSED
 - PRIORITY: 98
 - TAGS: release,db
 

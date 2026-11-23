@@ -3,9 +3,6 @@ use anyhow::{Context, Result};
 use rusqlite::Connection;
 use std::path::Path;
 
-#[cfg(debug_assertions)]
-const WIPE_ON_START: bool = true;
-
 /// Baseline schema (version 1). Edit freely during development; freeze it at release.
 const SCHEMA: &str = include_str!("schema.sql");
 const BASELINE: u32 = 1;
@@ -16,9 +13,10 @@ const BASELINE: u32 = 1;
 const MIGRATIONS: &[(u32, &str)] = &[];
 
 pub fn open_and_migrate(path: &Path) -> Result<Connection> {
-    // Dev builds start from a clean database so schema.sql is always what runs.
-    // Set LMS_KEEP_DB=1 to keep your data between restarts.
-    if WIPE_ON_START {
+    // Debug builds start from a clean database so schema.sql is always what runs.
+    // Set LMS_KEEP_DB=1 to keep your data between restarts. Release builds never wipe.
+    let wipe = cfg!(debug_assertions) && std::env::var_os("LMS_KEEP_DB").is_none();
+    if wipe {
         reset_db_files(path)?;
         eprintln!("[db] debug build: wiped {:?}", path);
     }
