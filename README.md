@@ -1,103 +1,92 @@
-# LMS
+# LMS: Laboratory Management System
 
-A desktop laboratory and patient management system built with Tauri, React, and TypeScript.
+A fast, offline-first desktop app for running a small clinical laboratory: register patients, take test requests, enter and finalize results, print reports, and handle billing. All data stays on your machine in a local SQLite database.
 
-It is an application for managing laboratory workflows, patient records, investigation requests,
-results, billing, and user access in a desktop environment.
+> **Alpha (`0.1.0-alpha.1`).** Usable for evaluation and testing, not yet recommended as the only record system of a live lab. See [Known limitations](#known-limitations).
 
-## Overview
+![Dashboard](docs/screenshots/dashboard.png)
 
-LMS is designed for clinical and laboratory operations where staff need a fast, reliable system to:
+## Features
 
-- register and manage patients
-- create and track investigation requests
-- record and review lab results
-- generate printable reports and receipts
-- manage billing and payment records
-- support role-based access for users and administrators
-- run as a native desktop app on Windows, macOS, and Linux
+- **Patients**: registration, search, history
+- **Requests**: pick individual tests or predefined profiles, track status from pending to completed, urgent flag
+- **Results entry**: units, age- and sex-specific reference ranges, automatic High/Low flags, per-result notes, finalize
+- **Reports**: print-ready reports with your lab header, single or batch (one sheet per patient), full or pre-printed-paper layout
+- **Billing**: invoices, partial payments, receipts
+- **Test catalogue**: ships with a seeded list of investigations; edit categories, tests, profiles and reference ranges
+- **Global search** across patients, tests, requests and invoices (SQLite FTS5)
+- **Users and roles**: admin, technician, receptionist, viewer; every command is authorized on the backend, and sessions expire after 12 hours
+- **Backup and restore** from Settings, plus an automatic backup at startup
+- **Regional settings**: currency and date format; light and dark themes
 
-## Tech Stack
+## Screenshots
 
-- React + TypeScript
-- Vite for frontend tooling
-- Tauri for desktop packaging
-- Rust backend for data access and business logic
-- SQLite for local data storage
-- authentication and secure local storage patterns
+| | |
+|---|---|
+| ![Requests](docs/screenshots/requests.png) | ![Results entry](docs/screenshots/results.png) |
+| ![Patients](docs/screenshots/patients.png) | ![Billing](docs/screenshots/billing.png) |
+| ![Investigations](docs/screenshots/investigations.png) | ![Printed report](docs/screenshots/report.png) |
 
-## Core Features
+Light theme:
 
-- patient management
-- requests and investigations workflow
-- result entry and reporting
-- billing and receipt generation
-- user and settings management
-- desktop-first experience with local persistence
-- printable report and receipt pages
+![Dashboard, light](docs/screenshots/dashboard-light.png)
 
-## Application Structure
+*The screenshots use fictional demo data.*
 
-```text
-.
-├── src/               # React frontend application
-│   ├── components/   # Shared UI components
-│   ├── pages/        # Dashboard, patients, requests, billing, etc.
-│   ├── stores/       # State management
-│   └── styles.css    # App styling
-├── public/            # Static assets
-├── src-tauri/         # Tauri app and Rust backend
-│   └── src/           # Authentication, database, billing, requests, results, and app commands
-├── package.json       # Frontend dependencies and scripts
-├── vite.config.ts     # Vite config
-├── tsconfig.json      # TypeScript config
-├── README.md          # Project documentation
-├── index.html         # Browser entry point
-└── pnpm-lock.yaml     # Lockfile
-```
+## Install
 
-## Getting Started
+Download the installer for your OS from the [latest release](../../releases):
 
-### Prerequisites
+- **Windows**: the `.exe` (NSIS) installer
+- **Linux**: the `.AppImage` or `.deb`
 
-- Node.js 18+
-- pnpm or npm
-- Rust toolchain
-- Tauri system dependencies for your OS
+Alpha builds are not code-signed, so Windows SmartScreen may warn you; choose "More info" then "Run anyway".
 
-### Install dependencies
+### First login
 
-```bash
-npm install
-```
+Sign in with username `admin` and password `admin`, then **change the password immediately** under Users. Create accounts for the rest of your staff from the same page.
 
-or
+## Tech stack
+
+| Layer | Tools |
+|---|---|
+| Shell | [Tauri 2](https://tauri.app) |
+| Backend | Rust, SQLite (rusqlite, FTS5) |
+| Frontend | React, TypeScript, Zustand, React Router (HashRouter), Vite |
+| Tooling | pnpm, [tatr](https://github.com/) task tracker, GitHub Actions |
+
+## Build from source
+
+Prerequisites: Node 22+, pnpm, a Rust toolchain, and the [Tauri system dependencies](https://tauri.app/start/prerequisites/) for your OS.
 
 ```bash
 pnpm install
+pnpm tauri dev      # run in development
+pnpm tauri build    # production bundles
 ```
 
-### Run the app in development mode
+In debug builds the database is wiped on every start and filled with demo data (extra logins: `tech/tech`, `reception/reception`, `viewer/viewer`). Set `LMS_KEEP_DB=1` to keep the database between runs. Release builds never wipe data and never add demo data.
 
-```bash
-npm run tauri dev
+### Project layout
+
+```
+src/            React frontend (pages, stores, lib/api.ts)
+src-tauri/src/  Rust backend (commands, auth, db, search, billing, seed)
+src-tauri/seed/ Seed catalogue of investigations
+tasks/          tatr task tracker
 ```
 
-This launches the React frontend together with the Tauri desktop application.
+## Known limitations
 
-### Build for production
+- Alpha: the database schema may still change between alpha versions, and migrations are not guaranteed yet.
+- The default `admin/admin` account must be changed by hand on first use.
+- English interface only (Arabic is planned).
+- Installers are unsigned.
 
-```bash
-npm run tauri build
-```
+## Clinical disclaimer
 
-This compiles the app and produces desktop build artifacts for the target platform.
-
-
-## Notes
-
-The repo is a practical app foundation for a diagnostic or laboratory management workflow, with Tauri providing a desktop shell and React providing the frontend UI.
+LMS is a record-keeping and reporting tool. Reference ranges and abnormal flags are aids only; results must be reviewed and authorized by qualified laboratory staff before release. The software is provided without warranty.
 
 ## License
 
-This project is intended for use and modification under GNU General Public License v3.0 (GPL-3.0).
+[GPL v3](LICENSE)
